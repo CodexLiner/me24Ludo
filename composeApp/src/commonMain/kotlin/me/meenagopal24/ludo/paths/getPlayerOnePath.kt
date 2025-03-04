@@ -1,0 +1,255 @@
+package me.meenagopal24.ludo.paths
+
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+
+fun getPlayerOnePath(): SnapshotStateList<Pair<Int, Int>> {
+    return mutableStateListOf(
+        Pair(6, 1),
+        Pair(6, 2),
+        Pair(6, 3),
+        Pair(6, 4),
+        Pair(6, 5),  // Move Right
+        Pair(5, 6),
+        Pair(4, 6),
+        Pair(3, 6),
+        Pair(2, 6),
+        Pair(1, 6),
+        Pair(0, 6),  // Move Up
+        Pair(0, 7),
+        Pair(0, 8),  // Move Right
+        Pair(1, 8),
+        Pair(2, 8),
+        Pair(3, 8),
+        Pair(4, 8),
+        Pair(5, 8),  // Move Down 6 Steps
+        Pair(6, 9),
+        Pair(6, 10),
+        Pair(6, 11),
+        Pair(6, 12),
+        Pair(6, 13),
+        Pair(6, 14),  // Move Right
+        Pair(7, 14),
+        Pair(8, 14),  // Move Down
+        Pair(8, 13),
+        Pair(8, 12),
+        Pair(8, 11),
+        Pair(8, 10),
+        Pair(8, 9),  // Move Left
+        Pair(9, 8),
+        Pair(10, 8),
+        Pair(11, 8),
+        Pair(12, 8),
+        Pair(13, 8),
+        Pair(14, 8),
+        Pair(14, 7),
+        Pair(14, 6),
+        Pair(13, 6),
+        Pair(12, 6),
+        Pair(11, 6),
+        Pair(10, 6),
+        Pair(9, 6),
+        Pair(8, 5),
+        Pair(8, 4),
+        Pair(8, 3),
+        Pair(8, 2),
+        Pair(8, 1),
+        Pair(8, 0),
+        Pair(7, 0),
+        Pair(7, 1),
+        Pair(7, 2),
+        Pair(7, 3),
+        Pair(7, 4),
+        Pair(7, 5),
+        Pair(7, 6)
+    )
+}
+
+fun getPlayerTwoPath(): SnapshotStateList<Pair<Int, Int>> {
+    return mutableStateListOf(
+        Pair(1, 8),
+        Pair(2, 8),
+        Pair(3, 8),
+        Pair(4, 8),
+        Pair(5, 8),
+        Pair(6, 9),
+        Pair(6, 10),
+        Pair(6, 11),
+        Pair(6, 12),
+        Pair(6, 13),
+        Pair(6, 14),
+        Pair(7, 14),
+        Pair(8, 14),
+        Pair(8, 13),
+        Pair(8, 12),
+        Pair(8, 11),
+        Pair(8, 10),
+        Pair(8, 9),
+        Pair(9, 8),
+        Pair(10, 8),
+        Pair(11, 8),
+        Pair(12, 8),
+        Pair(13, 8),
+
+        Pair(14, 8),  // Move Down
+        Pair(14, 7),
+        Pair(14, 6),  // Move Left
+        Pair(13, 6),
+        Pair(12, 6),
+        Pair(11, 6),
+        Pair(10, 6),
+        Pair(9, 6),
+        Pair(8, 5),  // Move Up
+        Pair(8, 4),
+        Pair(8, 3),
+        Pair(8, 2),
+        Pair(8, 1),
+        Pair(8, 0),
+        Pair(7, 0),
+        Pair(6, 0),  // Move Left
+        Pair(6, 1),
+        Pair(6, 2),
+        Pair(6, 3),
+        Pair(6, 4),
+        Pair(6, 5),
+        Pair(5, 6),
+        Pair(4, 6),
+        Pair(3, 6),
+        Pair(2, 6),
+        Pair(1, 6),
+        Pair(0, 6),
+        Pair(0, 7),
+        Pair(1, 7),
+        Pair(2, 7),
+        Pair(3, 7),
+        Pair(4, 7),
+        Pair(5, 7),
+        Pair(6, 7),
+    )
+}
+
+fun getPlayerThreePath(): SnapshotStateList<Pair<Int, Int>> {
+    return mutableStateListOf(
+        Pair(8, 13),
+        Pair(8, 12),
+        Pair(8, 11),
+        Pair(8, 10),
+        Pair(8, 9),  // Move Left
+        Pair(9, 8),
+        Pair(10, 8),
+        Pair(11, 8),
+        Pair(12, 8),
+        Pair(13, 8),
+        Pair(14, 8),  // Move Down
+        Pair(14, 7),
+        Pair(14, 6),  // Move Left
+        Pair(13, 6),
+        Pair(12, 6),
+        Pair(11, 6),
+        Pair(10, 6),
+        Pair(9, 6),
+        Pair(8, 5),  // Move Up
+        Pair(8, 4),
+        Pair(8, 3),
+        Pair(8, 2),
+        Pair(8, 1),
+        Pair(8, 0),
+        Pair(7, 0),
+        Pair(6, 0),  // Move Left
+        Pair(6, 1),
+        Pair(6, 2),
+        Pair(6, 3),
+        Pair(6, 4),
+        Pair(6, 5),
+        Pair(5, 6),
+        Pair(4, 6),
+        Pair(3, 6),
+        Pair(2, 6),
+        Pair(1, 6),
+        Pair(0, 6),
+        Pair(0, 7),
+        Pair(0, 8),
+        Pair(1, 8),
+        Pair(2, 8),
+        Pair(3, 8),
+        Pair(4, 8),
+        Pair(5, 8),
+        Pair(6, 9),
+        Pair(6, 10),
+        Pair(6, 11),
+        Pair(6, 12),
+        Pair(6, 13),
+        Pair(6, 14),
+        Pair(7, 14),
+        Pair(7, 13),
+        Pair(7, 12),
+        Pair(7, 11),
+        Pair(7, 10),
+        Pair(7, 9),
+        Pair(7, 8),
+    )
+
+}
+fun getPlayerFourPath(): SnapshotStateList<Pair<Int, Int>> {
+    return mutableStateListOf(
+        Pair(13, 6),
+        Pair(12, 6),
+        Pair(11, 6),
+        Pair(10, 6),
+        Pair(9, 6),  // Move Up
+        Pair(8, 5),
+        Pair(8, 4),
+        Pair(8, 3),
+        Pair(8, 2),
+        Pair(8, 1),
+        Pair(8, 0),  // Move Left
+        Pair(7, 0),
+        Pair(6, 0),
+        Pair(6, 1),
+        Pair(6, 2),
+        Pair(6, 3),
+        Pair(6, 4),
+        Pair(6, 5),  // Move Down
+        Pair(5, 6),
+        Pair(4, 6),
+        Pair(3, 6),
+        Pair(2, 6),
+        Pair(1, 6),
+        Pair(0, 6),
+        Pair(0, 7),
+        Pair(0, 8),  // Move Right
+        Pair(1, 8),
+        Pair(2, 8),
+        Pair(3, 8),
+        Pair(4, 8),
+        Pair(5, 8),
+        Pair(6, 9),
+        Pair(6, 10),
+        Pair(6, 11),
+        Pair(6, 12),
+        Pair(6, 13),
+        Pair(6, 14),  // Move Down
+        Pair(7, 14),
+        Pair(8, 14),
+        Pair(8, 13),
+        Pair(8, 12),
+        Pair(8, 11),
+        Pair(8, 10),
+        Pair(8, 9),  // Move Left
+        Pair(9, 8),
+        Pair(10, 8),
+        Pair(11, 8),
+        Pair(12, 8),
+        Pair(13, 8),
+        Pair(14, 8),
+        Pair(14, 7),
+        Pair(13, 7),
+        Pair(12, 7),
+        Pair(11, 7),
+        Pair(10, 7),
+        Pair(9, 7),
+        Pair(8, 7),
+    )
+
+}
+

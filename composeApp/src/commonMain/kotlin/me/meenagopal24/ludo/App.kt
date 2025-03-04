@@ -1,55 +1,220 @@
 package me.meenagopal24.ludo
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateOffsetAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import me.meenagopal24.ludo.paths.getPlayerFourPath
+import me.meenagopal24.ludo.paths.getPlayerOnePath
+import me.meenagopal24.ludo.paths.getPlayerThreePath
+import me.meenagopal24.ludo.paths.getPlayerTwoPath
 import me.meenagopal24.ludo.theme.AppTheme
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import androidx.compose.ui.graphics.Color
+
+fun String.toColor(): Color {
+    val hex = removePrefix("#")
+    return Color(hex.toLong(16) or (if (hex.length == 6) 0xFF000000 else 0x00000000))
+}
+
 
 @Composable
 internal fun App() = AppTheme {
     Column(
-        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing), horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val homeColors = listOf(Color.Red, Color.Cyan, Color.Blue, Color.Green)
+        val homeColors = listOf("#eb7434".toColor(), "#09b55c".toColor(), "#adcf17".toColor(), "#9294e8".toColor())
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
+            LudoBoardWithJump(Modifier.background(Color.Transparent , RoundedCornerShape(10.dp)), homeColors){ offset, boardCellSize ->
 
-        LudoBoardMyOwn(Modifier.background(Color.Black), homeColors)
+            }
+
+        }
     }
 }
-
 
 @Composable
-fun LudoBoardMyOwn(background: Modifier, homeColors: List<Color>) {
-    Canvas(background.fillMaxSize()) {
-        val ludoBoardSize = size.minDimension * 0.9f
-        val boardCellsSize = ludoBoardSize / 15
-        val boxSize = Size(boardCellsSize, boardCellsSize)
-        val startX = (size.width - ludoBoardSize) / 2
-        val startY = (size.height - ludoBoardSize) / 2
+fun LudoBoardWithJump(
+    background: Modifier,
+    homeColors: List<Color>,
+    radius: Dp = 10.dp,
+    ludoBoardSize: Dp = 350.dp,
+    setOffSet: (Offset, Float) -> Unit
+) {
+    val player1Path = remember { getPlayerOnePath() }
+    val player2Path = remember { getPlayerTwoPath() }
+    val player3Path = remember { getPlayerThreePath() }
+    val player4Path = remember { getPlayerFourPath() }
 
-        drawLudoBoardGrid(startX, startY, boardCellsSize, boxSize)
-        drawHomePaths(startX, startY, boardCellsSize, homeColors)
-        drawSafeAreas(startX , startY , boardCellsSize , homeColors)
-        drawHomeAreas(startX, startY, boardCellsSize, homeColors)
-        drawHomeTokens(startX , startY , boardCellsSize , homeColors)
-        drawPathArrows(startX , startY , boardCellsSize , homeColors)
-        drawHomeEntriesArrows(startX , startY , boardCellsSize , homeColors)
+    val player1Index = remember { mutableStateOf(0) }
+    val player2Index = remember { mutableStateOf(0) }
+    val player3Index = remember { mutableStateOf(0) }
+    val player4Index = remember { mutableStateOf(0) }
+
+    val boardCellsSize = with(LocalDensity.current) { (ludoBoardSize / 15).toPx() }
+
+    @Composable
+    fun getAnimatedOffset(path: List<Pair<Int, Int>>, index: Int): State<Offset> {
+        val (row, col) = path.getOrNull(index) ?: Pair(0, 0)
+        return animateOffsetAsState(
+            targetValue = Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2),
+            animationSpec = tween(durationMillis = 300, easing = LinearEasing)
+        )
+    }
+
+    // **Each Token Gets Its Own Jump Animation**
+    val jumpAnim1 = remember { Animatable(0f) }
+    val jumpAnim2 = remember { Animatable(0f) }
+    val jumpAnim3 = remember { Animatable(0f) }
+    val jumpAnim4 = remember { Animatable(0f) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    suspend fun triggerJump(anim: Animatable<Float, AnimationVector1D>) {
+        anim.animateTo(-boardCellsSize / 3, animationSpec = tween(150, easing = FastOutSlowInEasing))
+        anim.animateTo(0f, animationSpec = tween(150, easing = FastOutSlowInEasing))
+    }
+
+    val player1Offset = getAnimatedOffset(player1Path, player1Index.value)
+    val player2Offset = getAnimatedOffset(player2Path, player2Index.value)
+    val player3Offset = getAnimatedOffset(player3Path, player3Index.value)
+    val player4Offset = getAnimatedOffset(player4Path, player4Index.value)
+
+    Column(modifier = background.wrapContentSize()) {
+        Canvas(modifier = Modifier.size(ludoBoardSize).clip(RoundedCornerShape(radius))) {
+            val startX = (size.width - size.minDimension) / 2
+            val startY = (size.height - size.minDimension) / 2
+            setOffSet(Offset(startX, startY), boardCellsSize)
+
+            drawLudoBoardGrid(startX, startY, boardCellsSize, Size(boardCellsSize, boardCellsSize))
+            drawHomePaths(startX, startY, boardCellsSize, homeColors)
+            drawSafeAreas(startX, startY, boardCellsSize, homeColors)
+            drawHomeAreas(startX, startY, boardCellsSize, homeColors)
+            drawHomeTokens(startX, startY, boardCellsSize, homeColors)
+            drawPathArrows(startX, startY, boardCellsSize, homeColors)
+            drawHomeEntriesArrows(startX, startY, boardCellsSize, homeColors)
+
+            fun drawAnimatedPlayer(offset: Offset, color: Color) {
+                drawCircle(
+                    color = color,
+                    radius = boardCellsSize / 2.5f,
+                    center = offset,
+                )
+            }
+
+            val homeColors = listOf(
+                Color(0xFFFF9F43), // Orange
+                Color(0xFF9B59B6), // Purple
+                Color(0xFF1E90FF), // Dodger Blue
+                Color(0xFFFFC0CB)  // Pink
+            )
+
+
+            drawAnimatedPlayer(player1Offset.value, homeColors[0])
+            drawAnimatedPlayer(player2Offset.value, homeColors[1])
+            drawAnimatedPlayer(player3Offset.value, homeColors[2])
+            drawAnimatedPlayer(player4Offset.value, homeColors[3])
+
+
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        /**
+         * Buttons to Move Each Player
+         */
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = {
+                if (player1Index.value < player1Path.size - 1) {
+                    player1Index.value++
+                } else {
+                    player1Index.value = 0 // Reset to start
+                }
+                coroutineScope.launch { triggerJump(jumpAnim1) }
+            }) {
+                Text(text = "Move Player 1")
+            }
+
+            Button(onClick = {
+                if (player2Index.value < player2Path.size - 1) {
+                    player2Index.value++
+                } else {
+                    player2Index.value = 0 // Reset to start
+                }
+                coroutineScope.launch { triggerJump(jumpAnim2) }
+            }) {
+                Text(text = "Move Player 2")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = {
+                if (player3Index.value < player3Path.size - 1) {
+                    player3Index.value++
+                } else {
+                    player3Index.value = 0 // Reset to start
+                }
+                coroutineScope.launch { triggerJump(jumpAnim3) }
+            }) {
+                Text(text = "Move Player 3")
+            }
+
+            Button(onClick = {
+                if (player4Index.value < player4Path.size - 1) {
+                    player4Index.value++
+                } else {
+                    player4Index.value = 0 // Reset to start
+                }
+                coroutineScope.launch { triggerJump(jumpAnim4) }
+            }) {
+                Text(text = "Move Player 4")
+            }}
     }
 }
+
+
 
 fun DrawScope.drawHomeEntriesArrows(
     startX: Float,
@@ -242,7 +407,7 @@ fun DrawScope.drawLudoBoardGrid(startX: Float, startY: Float, boardCellsSize: Fl
         for (col in 0 until 15) {
             val currentX = startX + col * boardCellsSize
             val currentY = startY + row * boardCellsSize
-            drawRect(Color.Red, Offset(currentX, currentY), boxSize, style = Stroke(2f))
+            drawRect(Color.Black, Offset(currentX, currentY), boxSize, style = Stroke(2f))
         }
     }
 }
