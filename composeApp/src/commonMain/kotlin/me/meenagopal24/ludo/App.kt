@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -153,7 +154,7 @@ fun DrawScope.drawHomeTokens(
     homeColors: List<Color>,
     borderThickness: Float = 4f,
     paddingFactor: Float = 1f,
-    chanceScale: Float = 2.5f
+    chanceScale: Float = 1.7f
 ) {
     val homeOffsets = listOf(0 to 0, 9 to 0, 9 to 9, 0 to 9)
 
@@ -163,8 +164,8 @@ fun DrawScope.drawHomeTokens(
         val innerStart = homeOffset + Offset(boardCellsSize, boardCellsSize)
 
         // Draw white background and black border
-        drawRect(Color.White, topLeft = innerStart, size = Size(innerBoxSize, innerBoxSize))
-        drawRect(Color.Black, topLeft = innerStart, size = Size(innerBoxSize, innerBoxSize), style = Stroke(borderThickness))
+        drawRoundRect(cornerRadius = CornerRadius(50f), color = Color.White, topLeft = innerStart, size = Size(innerBoxSize, innerBoxSize))
+        drawRoundRect(cornerRadius = CornerRadius(50f) , color = Color.Black, topLeft = innerStart, size = Size(innerBoxSize, innerBoxSize), style = Stroke(borderThickness))
 
         // Draw four tokens (chances) inside home
         val padding = boardCellsSize * paddingFactor
