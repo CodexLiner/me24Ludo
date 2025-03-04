@@ -1,4 +1,5 @@
 package me.meenagopal24.ludo
+enum class Direction { UP, DOWN, LEFT, RIGHT }
 
 data class Token(
     val player: Player,
