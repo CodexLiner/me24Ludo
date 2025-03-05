@@ -31,10 +31,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
@@ -68,16 +71,122 @@ internal fun App() = AppTheme {
 
             }
 
+//            HalfCircleArch(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(100.dp) // Adjust to match the arch size
+//            )
+//            LocationPinView()
+
         }
     }
 }
+@Composable
+fun HalfCircleArch(modifier: Modifier = Modifier, strokeWidth: Float = 10f) {
+    Canvas(modifier = modifier) {
+        val diameter = size.width * 0.6f
+        val radius = diameter / 2
+        val centerX = size.width / 2
+
+        // Arch start and end points
+        val startX = centerX - radius
+        val endX = centerX + radius
+        val archBottomY = radius
+        val triangleBottomY = radius * 2.5f // Adjust the bottom point of the pin
+
+        // Draw Half-Circle Arch
+        drawArc(
+            color = Color.Blue,
+            startAngle = 180f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = Offset(startX, 0f),
+            size = Size(diameter, diameter),
+        )
+
+        // Create a filled triangle path
+        val path = Path().apply {
+            moveTo(startX, archBottomY) // Left bottom of the arch
+            lineTo(centerX, triangleBottomY) // Bottom center point
+            lineTo(endX, archBottomY) // Right bottom of the arch
+            close() // Close the triangle
+        }
+
+        // Draw the filled triangle
+        drawPath(
+            path = path,
+            color = Color.Blue,
+            style = Fill
+        )
+
+        val circleRadius = radius * 0.5f  // Adjust the size of the circle
+        drawCircle(
+            color = Color.White, // Make it distinct from the arch
+            radius = circleRadius,
+            center = Offset(centerX, radius * 0.8f) // Position inside the arch
+        )
+    }
+}
+
+
+
+
+
+@Composable
+fun LocationPinView(
+    modifier: Modifier = Modifier,
+    pinColor: Color = Color.Red,
+    circleColor: Color = Color.White
+) {
+    Canvas(modifier = modifier.size(100.dp)) {
+        val width = size.width
+        val height = size.height
+
+        val ovalWidth = width * 0.5f  // 2% smaller
+        val ovalHeight = height * 0.5f  // 2% smaller
+        val ovalTopLeftX = (width - ovalWidth) / 2  // Keep it centered
+        val ovalTopLeftY = height * 0.20f  // Maintain the adjusted downward position
+
+        // Smaller & Shifted Oval (Head of Pin)
+        drawOval(
+            color = pinColor,
+            topLeft = Offset(ovalTopLeftX, ovalTopLeftY),
+            size = Size(ovalWidth, ovalHeight)
+        )
+
+        // Smooth Triangle Path
+        val path = Path().apply {
+            moveTo(width * 0.5f, height) // Bottom center
+            lineTo(width * 0.75f, height * 0.5f) // Right edge
+            quadraticBezierTo(
+                width * 0.5f, height * 0.48f, // Control point for smooth curve
+                width * 0.25f, height * 0.5f // Left edge
+            )
+            close()
+        }
+        drawPath(path, color = pinColor)
+
+        // Inner Circle (Hole in Pin)
+        drawCircle(
+            color = circleColor,
+            radius = width * 0.12f, // Keep proportionate
+            center = Offset(width / 2, height * 0.3f) // Adjusted for new oval position
+        )
+    }
+}
+
+
+
+
+
+
 
 @Composable
 fun LudoBoardWithJump(
     background: Modifier,
     homeColors: List<Color>,
     radius: Dp = 10.dp,
-    ludoBoardSize: Dp = 450.dp,
+    ludoBoardSize: Dp = 400.dp,
     setOffSet: (Offset, Float) -> Unit
 ) {
     val player1Path = remember { getPlayerOnePath() }
@@ -120,7 +229,7 @@ fun LudoBoardWithJump(
     val player4Offset = getAnimatedOffset(player4Path, player4Index.value)
 
     Column(modifier = background.wrapContentSize() , horizontalAlignment = Alignment.CenterHorizontally) {
-        Canvas(modifier = Modifier.size(ludoBoardSize).clip(RoundedCornerShape(radius))) {
+        Canvas(modifier = Modifier.size(ludoBoardSize)) {
             val startX = (size.width - size.minDimension) / 2
             val startY = (size.height - size.minDimension) / 2
             setOffSet(Offset(startX, startY), boardCellsSize)
@@ -129,9 +238,30 @@ fun LudoBoardWithJump(
             drawHomePaths(startX, startY, boardCellsSize, homeColors)
             drawSafeAreas(startX, startY, boardCellsSize, homeColors)
             drawHomeAreas(startX, startY, boardCellsSize, homeColors)
-            drawHomeTokens(startX, startY, boardCellsSize, homeColors)
-            drawPathArrows(startX, startY, boardCellsSize, homeColors)
             drawHomeEntriesArrows(startX, startY, boardCellsSize, homeColors)
+            drawPathArrows(startX, startY, boardCellsSize, homeColors)
+            drawHomeTokens(startX, startY, boardCellsSize, homeColors)
+
+            val homeOffsets = listOf(0 to 0, 9 to 0, 9 to 9, 0 to 9)
+
+            homeOffsets.forEach { (dx, dy) ->
+                val homeOffset = Offset(startX + dx * boardCellsSize, startY + dy * boardCellsSize)
+                val innerBoxSize = 4 * boardCellsSize
+                val innerStart = homeOffset + Offset(boardCellsSize, boardCellsSize)
+
+                val paddingFactor = 1f
+                val padding = boardCellsSize * paddingFactor
+                val offsets = listOf(
+                    innerStart + Offset(padding, padding),
+                    innerStart + Offset(innerBoxSize - padding, padding),
+                    innerStart + Offset(padding, innerBoxSize - padding),
+                    innerStart + Offset(innerBoxSize - padding, innerBoxSize - padding)
+                )
+
+                offsets.forEach { pos ->
+                    drawPin(center = pos, boardCellsSize = boardCellsSize)
+                }
+            }
 
             fun drawAnimatedPlayer(offset: Offset, color: Color) {
                 drawCircle(
@@ -208,36 +338,93 @@ fun LudoBoardWithJump(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = {
-                if (player3Index.value < player3Path.size - 1) {
-                    player3Index.value++
-                } else {
-                    player3Index.value = 0 // Reset to start
-                }
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                coroutineScope.launch { triggerJump(jumpAnim3) }
-            }) {
-                Text(text = "Move Player 3")
-            }
-
-            Button(onClick = {
-                if (player4Index.value < player4Path.size - 1) {
-                    player4Index.value++
-                } else {
-                    player4Index.value = 0 // Reset to start
-                }
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                coroutineScope.launch { triggerJump(jumpAnim4) }
-            }) {
-                Text(text = "Move Player 4")
-            }
-        }
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+//            Button(onClick = {
+//                if (player3Index.value < player3Path.size - 1) {
+//                    player3Index.value++
+//                } else {
+//                    player3Index.value = 0 // Reset to start
+//                }
+//                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+//                coroutineScope.launch { triggerJump(jumpAnim3) }
+//            }) {
+//                Text(text = "Move Player 3")
+//            }
+//
+//            Button(onClick = {
+//                if (player4Index.value < player4Path.size - 1) {
+//                    player4Index.value++
+//                } else {
+//                    player4Index.value = 0 // Reset to start
+//                }
+//                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+//                coroutineScope.launch { triggerJump(jumpAnim4) }
+//            }) {
+//                Text(text = "Move Player 4")
+//            }
+//        }
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * do not touch below
+ */
+
+
+fun DrawScope.drawPin(center: Offset, boardCellsSize: Float) {
+    val diameter = boardCellsSize * 0.6f
+    val radius = diameter / 2
+    val centerX = center.x
+    val centerY = center.y - boardCellsSize / 2
+
+    // Arch start and end points
+    val startX = centerX - radius
+    val endX = centerX + radius
+    val archBottomY = centerY + radius
+    val triangleBottomY = centerY + radius * 2.5f // Adjust the bottom point of the pin
+
+    // Draw Half-Circle Arch
+    drawArc(
+        color = Color.Blue,
+        startAngle = 180f,
+        sweepAngle = 180f,
+        useCenter = false,
+        topLeft = Offset(startX, centerY),
+        size = Size(diameter, diameter),
+    )
+
+    // Create and Draw Filled Triangle Path
+    val path = Path().apply {
+        moveTo(startX, archBottomY) // Left bottom of the arch
+        lineTo(centerX, triangleBottomY) // Bottom center point
+        lineTo(endX, archBottomY) // Right bottom of the arch
+        close() // Close the triangle
+    }
+    drawPath(path = path, color = Color.Blue, style = Fill)
+
+    // Draw Center Circle inside the Arch
+    val circleRadius = radius * 0.5f  // Adjust the size of the circle
+    drawCircle(
+        color = Color.White, // Make it distinct from the arch
+        radius = circleRadius,
+        center = Offset(centerX, centerY + radius * 0.8f) // Position inside the arch
+    )
+}
 
 
 fun DrawScope.drawHomeEntriesArrows(
