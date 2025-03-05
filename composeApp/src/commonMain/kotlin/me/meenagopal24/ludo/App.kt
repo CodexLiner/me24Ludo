@@ -13,13 +13,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -35,10 +32,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -50,7 +50,6 @@ import me.meenagopal24.ludo.theme.AppTheme
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
-import androidx.compose.ui.graphics.Color
 
 fun String.toColor(): Color {
     val hex = removePrefix("#")
@@ -61,7 +60,7 @@ fun String.toColor(): Color {
 @Composable
 internal fun App() = AppTheme {
     Column(
-        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing), horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val homeColors = listOf("#eb7434".toColor(), "#09b55c".toColor(), "#adcf17".toColor(), "#9294e8".toColor())
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
@@ -78,7 +77,7 @@ fun LudoBoardWithJump(
     background: Modifier,
     homeColors: List<Color>,
     radius: Dp = 10.dp,
-    ludoBoardSize: Dp = 350.dp,
+    ludoBoardSize: Dp = 450.dp,
     setOffSet: (Offset, Float) -> Unit
 ) {
     val player1Path = remember { getPlayerOnePath() }
@@ -120,7 +119,7 @@ fun LudoBoardWithJump(
     val player3Offset = getAnimatedOffset(player3Path, player3Index.value)
     val player4Offset = getAnimatedOffset(player4Path, player4Index.value)
 
-    Column(modifier = background.wrapContentSize()) {
+    Column(modifier = background.wrapContentSize() , horizontalAlignment = Alignment.CenterHorizontally) {
         Canvas(modifier = Modifier.size(ludoBoardSize).clip(RoundedCornerShape(radius))) {
             val startX = (size.width - size.minDimension) / 2
             val startY = (size.height - size.minDimension) / 2
@@ -137,9 +136,30 @@ fun LudoBoardWithJump(
             fun drawAnimatedPlayer(offset: Offset, color: Color) {
                 drawCircle(
                     color = color,
-                    radius = boardCellsSize / 2.5f,
-                    center = offset,
+                    radius = boardCellsSize / 5f, // Reduce head size to fit
+                    center = Offset(offset.x, offset.y - (boardCellsSize / 4f)) // Move head slightly up
                 )
+
+                val path = Path().apply {
+                    moveTo(offset.x - (boardCellsSize / 4f), offset.y - (boardCellsSize / 8f)) // Left top
+                    lineTo(offset.x + (boardCellsSize / 4f), offset.y - (boardCellsSize / 8f)) // Right top
+                    lineTo(offset.x + (boardCellsSize / 3.2f), offset.y + (boardCellsSize / 4.2f)) // Bottom right
+                    lineTo(offset.x - (boardCellsSize / 3.2f), offset.y + (boardCellsSize / 4.2f)) // Bottom left
+                    close()
+                }
+
+                drawPath(
+                    path = path,
+                    color = color
+                )
+
+                drawOval(
+                    color = color,
+                    topLeft = Offset(offset.x - (boardCellsSize / 4f), offset.y + (boardCellsSize / 4.2f) - (boardCellsSize / 10f)),
+                    size = Size(boardCellsSize / 2f, boardCellsSize / 8f) // Smaller to fit inside the cell
+                )
+
+
             }
 
             val homeColors = listOf(
@@ -160,16 +180,16 @@ fun LudoBoardWithJump(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        /**
-         * Buttons to Move Each Player
-         */
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val haptic = LocalHapticFeedback.current // Get haptic instance
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
                 if (player1Index.value < player1Path.size - 1) {
                     player1Index.value++
                 } else {
                     player1Index.value = 0 // Reset to start
                 }
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress) // Trigger haptic feedback
                 coroutineScope.launch { triggerJump(jumpAnim1) }
             }) {
                 Text(text = "Move Player 1")
@@ -181,6 +201,7 @@ fun LudoBoardWithJump(
                 } else {
                     player2Index.value = 0 // Reset to start
                 }
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 coroutineScope.launch { triggerJump(jumpAnim2) }
             }) {
                 Text(text = "Move Player 2")
@@ -189,13 +210,14 @@ fun LudoBoardWithJump(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
                 if (player3Index.value < player3Path.size - 1) {
                     player3Index.value++
                 } else {
                     player3Index.value = 0 // Reset to start
                 }
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 coroutineScope.launch { triggerJump(jumpAnim3) }
             }) {
                 Text(text = "Move Player 3")
@@ -207,10 +229,12 @@ fun LudoBoardWithJump(
                 } else {
                     player4Index.value = 0 // Reset to start
                 }
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 coroutineScope.launch { triggerJump(jumpAnim4) }
             }) {
                 Text(text = "Move Player 4")
-            }}
+            }
+        }
     }
 }
 
@@ -371,7 +395,7 @@ fun DrawScope.drawSafeAreas(startX: Float, startY: Float, boardCellsSize: Float,
 
             pathColor?.let {
 
-                drawRect(pathColor, Offset(currentX, currentY), Size(boardCellsSize, boardCellsSize))
+                drawRect(pathColor, Offset(currentX, currentY), Size(boardCellsSize -2f, boardCellsSize -2f))
 
                 /**
                  * draw star need to understand later
@@ -426,7 +450,8 @@ fun DrawScope.drawHomePaths(startX: Float, startY: Float, boardCellsSize: Float,
                 row in 6..8 && col in 6..8 -> Color.LightGray
                 else -> Color.White
             }
-            drawRect(pathColor, Offset(currentX, currentY), Size(boardCellsSize, boardCellsSize))
+
+            drawRect(pathColor, Offset(currentX, currentY), Size(boardCellsSize -2f, boardCellsSize-2f))
         }
     }
 }
@@ -441,162 +466,5 @@ fun DrawScope.drawHomeAreas(startX: Float, startY: Float, boardCellsSize: Float,
         Offset(startX, startY + 9 * boardCellsSize) to homeColors[3] // Bottom-left
     ).forEach { (offset, color) ->
         drawRect(color, offset, homeSize)
-    }
-}
-
-
-@Composable
-fun LudoBoard(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier.fillMaxSize()) {
-
-        val boardSize = size.minDimension * 0.9f
-        val cellSize = boardSize / 15
-        val startX = (size.width - boardSize) / 2
-        val startY = (size.height - boardSize) / 2
-
-        val homeColors = listOf(Color.Red, Color.Green, Color.Blue, Color.Yellow)
-        val pathColors = listOf(homeColors[0], homeColors[1], homeColors[3], homeColors[2])
-
-        // Draw paths and cell borders
-        for (row in 0 until 15) {
-            for (col in 0 until 15) {
-                val x = startX + col * cellSize
-                val y = startY + row * cellSize
-                val cellColor = when {
-                    row == 7 && col in 1..5 -> homeColors[0]
-                    row in 1..5 && col == 7 -> homeColors[1]
-                    row == 7 && col in 9..13 -> homeColors[2]
-                    row in 9..13 && col == 7 -> homeColors[3]
-                    row in 6..8 && col in 6..8 -> Color.White
-                    else -> Color.White
-                }
-
-                drawRect(cellColor, Offset(x, y), Size(cellSize, cellSize))
-
-                drawRect(Color.Black, Offset(x, y), Size(cellSize, cellSize), style = Stroke(2f))
-
-            }
-        }
-
-        // Center Area Triangles
-        val centerX = startX + 6 * cellSize
-        val centerY = startY + 6 * cellSize
-        val centerSquareSize = 3 * cellSize
-
-        drawRect(Color.White, Offset(centerX, centerY), Size(centerSquareSize, centerSquareSize))
-
-        val trianglePaths = listOf(
-            Triple(
-                homeColors[0],
-                centerX + 1.5f * cellSize to centerY,
-                centerX + 3 * cellSize to centerY + 1.5f * cellSize
-            ), Triple(
-                homeColors[1],
-                centerX + 1.5f * cellSize to centerY + 3 * cellSize,
-                centerX + 3 * cellSize to centerY + 1.5f * cellSize
-            ), Triple(
-                homeColors[2],
-                centerX to centerY + 1.5f * cellSize,
-                centerX + 1.5f * cellSize to centerY + 3 * cellSize
-            ), Triple(
-                homeColors[3],
-                centerX to centerY + 1.5f * cellSize,
-                centerX + 1.5f * cellSize to centerY
-            )
-        )
-
-        for ((color, p1, p2) in trianglePaths) {
-            val path = Path().apply {
-                moveTo(centerX + 1.5f * cellSize, centerY + 1.5f * cellSize)
-                lineTo(p1.first, p1.second)
-                lineTo(p2.first, p2.second)
-                close()
-            }
-            drawPath(path, color)
-        }
-
-
-        // Safe zones (stars where players cannot be killed) with their respective home colors
-        val safeZones = listOf(
-            Triple(1, 6, homeColors[0]),  // Red
-            Triple(6, 2, Color.Transparent),  // Red
-            Triple(8, 1, homeColors[1]),  // Green
-            Triple(12, 6, Color.Transparent), // Green
-            Triple(2, 8, Color.Transparent),  // Blue
-            Triple(6, 13, homeColors[2]), // Blue
-            Triple(8, 12, Color.Transparent), // Yellow
-            Triple(13, 8, homeColors[3])  // Yellow
-        )
-
-        safeZones.forEach { (col, row, homeColor) ->
-            val x = startX + col * cellSize
-            val y = startY + row * cellSize
-
-            // Draw background rectangle with home color
-            drawRect(
-                color = homeColor, topLeft = Offset(x, y), size = Size(cellSize, cellSize)
-            )
-
-            // Draw Safe Zone Star (Symbol)
-            val starPath = Path().apply {
-                val center = Offset(x + cellSize / 2, y + cellSize / 2)
-                val r = cellSize / 3
-                for (i in 0 until 5) {
-                    val angle = (i * 144) * (PI / 180)  // Convert degrees to radians
-                    val px = (center.x + r * kotlin.math.cos(angle)).toFloat()
-                    val py = (center.y + r * kotlin.math.sin(angle)).toFloat()
-                    if (i == 0) moveTo(px, py) else lineTo(px, py)
-                }
-                close()
-            }
-            drawPath(starPath, Color.Black)
-        }
-
-        // Draw home areas
-        homeColors.forEachIndexed { index, color ->
-            val (x, y) = when (index) {
-                0 -> startX to startY
-                1 -> startX + 9 * cellSize to startY
-                2 -> startX to startY + 9 * cellSize
-                3 -> startX + 9 * cellSize to startY + 9 * cellSize
-                else -> startX to startY
-            }
-            drawRect(color, Offset(x, y), Size(6 * cellSize, 6 * cellSize))
-
-            // 📦 Draw inner white box (with spacing)
-            val innerBoxSize = 4 * cellSize
-            val innerStartX = x + cellSize
-            val innerStartY = y + cellSize
-            drawRect(
-                color = Color.White,
-                topLeft = Offset(innerStartX, innerStartY),
-                size = Size(innerBoxSize, innerBoxSize),
-            )
-
-            drawRect(
-                color = Color.Black,
-                topLeft = Offset(innerStartX, innerStartY),
-                size = Size(innerBoxSize, innerBoxSize),
-                style = Stroke(4f)
-            )
-
-            // 🎲 Draw four chances inside home (now with better spacing)
-            val padding = cellSize * 1 // Space from inner box
-            val chanceRadius = cellSize / 2.5f // Smaller radius for better fit
-
-            val offsets = listOf(
-                Offset(innerStartX + padding, innerStartY + padding),
-                Offset(innerStartX + innerBoxSize - padding, innerStartY + padding),
-                Offset(innerStartX + padding, innerStartY + innerBoxSize - padding),
-                Offset(innerStartX + innerBoxSize - padding, innerStartY + innerBoxSize - padding)
-            )
-
-            offsets.forEach { pos ->
-                drawCircle(
-                    color = Color.Black, radius = chanceRadius, center = pos
-                )
-            }
-        }
-
     }
 }
