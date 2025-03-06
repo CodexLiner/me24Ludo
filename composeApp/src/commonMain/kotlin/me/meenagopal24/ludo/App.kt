@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.launch
 import me.meenagopal24.ludo.canvas.drawHomeAreas
 import me.meenagopal24.ludo.canvas.drawHomeEntriesArrows
@@ -54,6 +55,7 @@ import me.meenagopal24.ludo.utils.detectOverlaps
 import me.meenagopal24.ludo.utils.getAnimatedOffset
 import me.meenagopal24.ludo.utils.getHomeOffset
 import me.meenagopal24.ludo.utils.homeOffsets
+import me.meenagopal24.ludo.utils.safeZones
 
 fun String.toColor(): Color {
     val hex = removePrefix("#")
@@ -94,6 +96,7 @@ fun LudoBoardWithFourTokens(
     var currentPlayer by remember { mutableStateOf(0) } // Track current player
     var overlappingState = remember { mutableListOf<Pair<Offset, Int?>>() }
     val overlappingOffsets = remember { mutableMapOf<Offset, Int>() }
+    val tempSafeZone =  remember { mutableMapOf<Pair<Int,Int>, Boolean>() }
 
     val playerPaths = remember {
         listOf(
@@ -149,15 +152,17 @@ fun LudoBoardWithFourTokens(
                 } else offset
 
                 detectOverlaps(tokenPositions) { collisions ->
-                    for (tripletList in collisions.values) {
-                        if (tripletList.size == 2) { // ✅ Only process if exactly 2 tokens collide
+                    for ((position, tripletList) in collisions) {
+                        val (row, col) = position
+                        if (safeZones.contains(Pair(col, row))) continue
+
+                        if (tripletList.size == 2) {
                             val (first, second) = tripletList
 
                             val (player1, token1, _) = first
                             val (player2, token2, _) = second
 
-                            if (player1 != player2) { // ✅ Only reset if tokens belong to different players
-                                // ❌ Reset the opponent's token, skipping the current player
+                            if (player1 != player2) {
                                 if (player1 == currentPlayer) {
                                     tokenPositions[player2][token2] = -1
                                 } else {
