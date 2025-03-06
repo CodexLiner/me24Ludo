@@ -1,28 +1,33 @@
 package me.meenagopal24.ludo
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,11 +35,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.meenagopal24.ludo.canvas.*
 import me.meenagopal24.ludo.paths.getPlayerFourPath
@@ -42,9 +49,18 @@ import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
 import me.meenagopal24.ludo.paths.getPlayerTwoPath
 import me.meenagopal24.ludo.theme.AppTheme
+import me.meenagopal24.ludo.utils.detectOverlaps
 import me.meenagopal24.ludo.utils.getAnimatedOffset
 import me.meenagopal24.ludo.utils.getHomeOffset
 import me.meenagopal24.ludo.utils.homeOffsets
+import multiplatform_app.composeapp.generated.resources.Res
+import multiplatform_app.composeapp.generated.resources.dice_1
+import multiplatform_app.composeapp.generated.resources.dice_2
+import multiplatform_app.composeapp.generated.resources.dice_3
+import multiplatform_app.composeapp.generated.resources.dice_4
+import multiplatform_app.composeapp.generated.resources.dice_5
+import multiplatform_app.composeapp.generated.resources.dice_6
+import org.jetbrains.compose.resources.painterResource
 
 fun String.toColor(): Color {
     val hex = removePrefix("#")
@@ -80,9 +96,12 @@ internal fun App() = AppTheme {
 fun LudoBoardWithFourTokens(
     background: Modifier,
     homeColors: List<Color>,
-    ludoBoardSize: Dp = 450.dp,
+    ludoBoardSize: Dp = 350.dp,
     setOffSet: (Offset, Float) -> Unit
 ) {
+    var overlappingState = remember {  mutableListOf<Pair<Offset, Int?>>() }
+    val overlappingOffsets = remember {  mutableMapOf<Offset, Int>() }
+
     val playerPaths = remember {
         listOf(
             getPlayerOnePath(),
@@ -135,7 +154,14 @@ fun LudoBoardWithFourTokens(
                     getHomeOffset(startX, startY, homeOffsets[player], boardCellsSize)[index]
                 } else offset
 
-                drawPin(center = tokenOffset, boardCellsSize = boardCellsSize, color)
+                detectOverlaps(tokenPositions) {  collisions ->
+                   val x = collisions.keys.map { pair ->
+                        val (row, col) = pair
+                       Pair(Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2) , collisions[pair]?.size)
+                    }
+                    overlappingState = x.toMutableStateList()
+                }
+                drawPin(center = tokenOffset, boardCellsSize = boardCellsSize, color = color , overlappingState = overlappingState , pinDrawTracker = overlappingOffsets)
             }
 
             for (player in 0 until 4) {
