@@ -58,7 +58,10 @@ fun getAnimatedOffset(
     )
 }
 
-fun detectOverlaps(tokenPositions: List<SnapshotStateList<Int>> , onCollision : (MutableMap<Pair<Int, Int>, MutableList<Pair<Int, Int>>>) -> Unit) {
+fun detectOverlaps(
+    tokenPositions: List<SnapshotStateList<Int>>,
+    onCollision: (MutableMap<Pair<Int, Int>, MutableList<Triple<Int, Int, Int>>>) -> Unit
+) {
     val allPlayersPositions: List<SnapshotStateList<Pair<Int, Int>>> = listOf(
         getPlayerOnePath(),
         getPlayerTwoPath(),
@@ -66,31 +69,32 @@ fun detectOverlaps(tokenPositions: List<SnapshotStateList<Int>> , onCollision : 
         getPlayerFourPath()
     )
 
-    val positionMap = mutableMapOf<Pair<Int, Int>, MutableList<Pair<Int, Int>>>()
+    val positionMap = mutableMapOf<Pair<Int, Int>, MutableList<Triple<Int, Int, Int>>>()
 
     for ((playerIndex, playerTokens) in tokenPositions.withIndex()) {
         val playerPath = allPlayersPositions[playerIndex] // Get the path for the player
         for ((tokenIndex, tokenPosIndex) in playerTokens.withIndex()) {
             if (tokenPosIndex >= 0 && tokenPosIndex in playerPath.indices) {
                 val boardPosition = playerPath[tokenPosIndex] // Get actual board position
-                val tokenInfo = Pair(playerIndex, tokenIndex) // (Player number, Token number)
+                val tokenInfo = Triple(playerIndex, tokenIndex, tokenPosIndex) // (Player number, Token number, Position index)
                 positionMap.getOrPut(boardPosition) { mutableListOf() }.add(tokenInfo)
             }
         }
     }
 
-    positionMap.filter { it.value.size > 1 }?.let {
-        if (it.isNotEmpty()) {
-            onCollision(it.toMutableMap())
-        }
+    // Filter only positions where collisions occur
+    val collisions = positionMap.filter { it.value.size > 1 }.toMutableMap()
+
+    if (collisions.isNotEmpty()) {
+        onCollision(collisions)
     }
 
-
-    // Detect and report overlaps
-    for ((position, tokens) in positionMap) {
-        if (tokens.size > 1) {
-            Logger.d("Overlapdetected at $position among: $tokens")
-        }
-    }
+//    // Debugging logs for each collision
+//    for ((position, tokens) in collisions) {
+//        val collisionDetails = tokens.joinToString { (player, token, posIndex) ->
+//            "[Player: $player, Token: $token, BoardPosIndex: $posIndex]"
+//        }
+//        Logger.d("Collision detected at $position involving: $collisionDetails")
+//    }
 }
 

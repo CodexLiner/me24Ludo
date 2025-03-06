@@ -1,10 +1,6 @@
 package me.meenagopal24.ludo
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -35,15 +31,20 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.meenagopal24.ludo.canvas.*
+import me.meenagopal24.ludo.canvas.drawHomeAreas
+import me.meenagopal24.ludo.canvas.drawHomeEntriesArrows
+import me.meenagopal24.ludo.canvas.drawHomePaths
+import me.meenagopal24.ludo.canvas.drawHomeTokens
+import me.meenagopal24.ludo.canvas.drawLudoBoardGrid
+import me.meenagopal24.ludo.canvas.drawPathArrows
+import me.meenagopal24.ludo.canvas.drawPin
+import me.meenagopal24.ludo.canvas.drawSafeAreas
 import me.meenagopal24.ludo.paths.getPlayerFourPath
 import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
@@ -53,14 +54,6 @@ import me.meenagopal24.ludo.utils.detectOverlaps
 import me.meenagopal24.ludo.utils.getAnimatedOffset
 import me.meenagopal24.ludo.utils.getHomeOffset
 import me.meenagopal24.ludo.utils.homeOffsets
-import multiplatform_app.composeapp.generated.resources.Res
-import multiplatform_app.composeapp.generated.resources.dice_1
-import multiplatform_app.composeapp.generated.resources.dice_2
-import multiplatform_app.composeapp.generated.resources.dice_3
-import multiplatform_app.composeapp.generated.resources.dice_4
-import multiplatform_app.composeapp.generated.resources.dice_5
-import multiplatform_app.composeapp.generated.resources.dice_6
-import org.jetbrains.compose.resources.painterResource
 
 fun String.toColor(): Color {
     val hex = removePrefix("#")
@@ -90,7 +83,6 @@ internal fun App() = AppTheme {
     }
 }
 
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LudoBoardWithFourTokens(
@@ -99,8 +91,9 @@ fun LudoBoardWithFourTokens(
     ludoBoardSize: Dp = 350.dp,
     setOffSet: (Offset, Float) -> Unit
 ) {
-    var overlappingState = remember {  mutableListOf<Pair<Offset, Int?>>() }
-    val overlappingOffsets = remember {  mutableMapOf<Offset, Int>() }
+    var currentPlayer by remember { mutableStateOf(0) } // Track current player
+    var overlappingState = remember { mutableListOf<Pair<Offset, Int?>>() }
+    val overlappingOffsets = remember { mutableMapOf<Offset, Int>() }
 
     val playerPaths = remember {
         listOf(
@@ -112,12 +105,13 @@ fun LudoBoardWithFourTokens(
     }
 
     val tokenPositions = remember { List(4) { mutableStateListOf(-1, -1, -1, -1) } }
-
     val boardCellsSize = with(LocalDensity.current) { (ludoBoardSize / 15).toPx() }
     val coroutineScope = rememberCoroutineScope()
 
     fun moveToken(player: Int, index: Int) {
+        currentPlayer = player // Update current player when moving
         val path = playerPaths[player]
+
         if (tokenPositions[player][index] == -1) {
             tokenPositions[player][index] = 0
         } else if (tokenPositions[player][index] < path.size - 1) {
@@ -154,14 +148,41 @@ fun LudoBoardWithFourTokens(
                     getHomeOffset(startX, startY, homeOffsets[player], boardCellsSize)[index]
                 } else offset
 
-                detectOverlaps(tokenPositions) {  collisions ->
-                   val x = collisions.keys.map { pair ->
-                        val (row, col) = pair
-                       Pair(Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2) , collisions[pair]?.size)
+                detectOverlaps(tokenPositions) { collisions ->
+                    for (tripletList in collisions.values) {
+                        if (tripletList.size == 2) { // ✅ Only process if exactly 2 tokens collide
+                            val (first, second) = tripletList
+
+                            val (player1, token1, _) = first
+                            val (player2, token2, _) = second
+
+                            if (player1 != player2) { // ✅ Only reset if tokens belong to different players
+                                // ❌ Reset the opponent's token, skipping the current player
+                                if (player1 == currentPlayer) {
+                                    tokenPositions[player2][token2] = -1
+                                } else {
+                                    tokenPositions[player1][token1] = -1
+                                }
+                            }
+                        }
                     }
-                    overlappingState = x.toMutableStateList()
+
+                    val overlappingStateList = collisions.keys.map { (row, col) ->
+                        Pair(
+                            Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2),
+                            collisions[Pair(row, col)]?.size
+                        )
+                    }
+                    overlappingState = overlappingStateList.toMutableStateList()
                 }
-                drawPin(center = tokenOffset, boardCellsSize = boardCellsSize, color = color , overlappingState = overlappingState , pinDrawTracker = overlappingOffsets)
+
+                drawPin(
+                    center = tokenOffset,
+                    boardCellsSize = boardCellsSize,
+                    color = color,
+                    overlappingState = overlappingState,
+                    pinDrawTracker = overlappingOffsets
+                )
             }
 
             for (player in 0 until 4) {
@@ -170,7 +191,6 @@ fun LudoBoardWithFourTokens(
                 }
             }
         }
-
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -184,7 +204,7 @@ fun LudoBoardWithFourTokens(
                         }
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     }) {
-                        Text(text = "Move PLayer ${player + 1} Token ${i + 1}")
+                        Text(text = "Move Player ${player + 1} Token ${i + 1}")
                     }
                 }
             }
