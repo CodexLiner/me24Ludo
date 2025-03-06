@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
+import me.meenagopal24.ludo.toColor
 
 fun DrawScope.drawPin(center: Offset, boardCellsSize: Float, color: Color = Color.Blue) {
     val diameter = boardCellsSize * 0.6f
@@ -21,7 +22,7 @@ fun DrawScope.drawPin(center: Offset, boardCellsSize: Float, color: Color = Colo
 
     // Draw Half-Circle Arch
     drawArc(
-        color = Color.Blue,
+        color = "#272635".toColor(),
         startAngle = 180f,
         sweepAngle = 180f,
         useCenter = false,
@@ -36,7 +37,7 @@ fun DrawScope.drawPin(center: Offset, boardCellsSize: Float, color: Color = Colo
         lineTo(endX, archBottomY) // Right bottom of the arch
         close() // Close the triangle
     }
-    drawPath(path = path, color = Color.Blue, style = Fill)
+    drawPath(path = path, color ="#272635".toColor(), style = Fill)
 
     // Draw Center Circle inside the Arch
     val circleRadius = radius * 0.5f  // Adjust the size of the circle

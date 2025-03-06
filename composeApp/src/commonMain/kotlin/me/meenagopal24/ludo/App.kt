@@ -116,7 +116,7 @@ fun LudoBoardWithFourTokens(
 
     Column(modifier = background.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
 
-        Canvas(modifier = Modifier.size(ludoBoardSize).clip(RoundedCornerShape(10.dp)).border(2.dp, Color.Black, RoundedCornerShape(10.dp))) {
+        Canvas(modifier = Modifier.size(ludoBoardSize).clip(RoundedCornerShape(10.dp)).border(2.dp, Color.Gray, RoundedCornerShape(10.dp))) {
             val startX = (size.width - size.minDimension) / 2
             val startY = (size.height - size.minDimension) / 2
 

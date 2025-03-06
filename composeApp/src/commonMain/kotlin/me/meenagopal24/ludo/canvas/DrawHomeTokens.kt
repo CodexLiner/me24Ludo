@@ -6,6 +6,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import me.meenagopal24.ludo.utils.homeOffsets
 
 fun DrawScope.drawHomeTokens(
     startX: Float,
@@ -16,7 +17,6 @@ fun DrawScope.drawHomeTokens(
     paddingFactor: Float = 1f,
     chanceScale: Float = 1.7f
 ) {
-    val homeOffsets = listOf(0 to 0, 9 to 0, 9 to 9, 0 to 9)
 
     homeOffsets.forEachIndexed { index, (dx, dy) ->
         val homeOffset = Offset(startX + dx * boardCellsSize, startY + dy * boardCellsSize)
