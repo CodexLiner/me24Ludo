@@ -89,19 +89,6 @@ fun Me24LudoBoard(
     val tokenPositions = remember { List(4) { mutableStateListOf(-1, -1, -1, -1) } }
     val coroutineScope = rememberCoroutineScope()
 
-    fun moveToken(player: Int, index: Int) {
-        currentPlayer = player
-        val path = playerPaths[player]
-
-        if (tokenPositions[player][index] == -1) {
-            tokenPositions[player][index] = 0
-        } else if (tokenPositions[player][index] < path.size - 1) {
-            tokenPositions[player][index] += 1
-        } else {
-            tokenPositions[player][index] = -1
-        }
-    }
-
     val tokenOffsets = playerPaths.mapIndexed { playerIndex, path ->
         tokenPositions[playerIndex].map { position ->
             getAnimatedOffset(path, position.coerceAtLeast(0), boardCellsSize)
@@ -133,9 +120,9 @@ fun Me24LudoBoard(
                                 }
                             }
                     },
-                    onFirstMove = {
+                    onFirstMove = { index ->
                         if (currentPlayerMove == 6) {
-                            moveToken(currentPlayer, it)
+                            tokenPositions[currentPlayer][index] = 0
                             currentPlayerMove = -1
                         }
                     }
