@@ -70,8 +70,7 @@ fun Me24LudoBoard(
     val boardCellsSize = with(LocalDensity.current) { (screenSize.width.dp / 15).toPx() }
 
     var currentPlayer by remember { mutableStateOf(0) }
-    var currentPlayerMove by remember { mutableStateOf(1) }
-    var currentActiveMove by remember { mutableStateOf(-1) }
+    var currentPlayerMove by remember { mutableStateOf(-1) }
 
     var expanded by remember { mutableStateOf(false) }
     var overlappingState = remember { mutableListOf<Pair<Offset, Int?>>() }
@@ -126,6 +125,7 @@ fun Me24LudoBoard(
                                 val pathSize = playerPaths[currentPlayer].size
                                 val startPos = tokenPositions[currentPlayer][tokenIndex]
                                 val endPos = (startPos + currentPlayerMove).coerceAtMost(pathSize - 1)
+                                currentPlayerMove = -1
                                 coroutineScope.launch {
                                     (startPos..endPos).forEach { pos ->
                                         tokenPositions[currentPlayer][tokenIndex] = pos
@@ -134,7 +134,12 @@ fun Me24LudoBoard(
                                 }
                             }
                     },
-                    onFirstMove = { moveToken(currentPlayer, it) }
+                    onFirstMove = {
+                        if (currentPlayerMove >= 5) {
+                            moveToken(currentPlayer, it)
+                            currentPlayerMove = -1
+                        }
+                    }
                 )
             }
         }
@@ -154,7 +159,7 @@ fun Me24LudoBoard(
                         player = player,
                         token = token,
                         tokenOffsets = tokenOffsets,
-                        tokenColor = homeColors[player].copy(alpha = if (player == currentPlayer) colorAlphaState else 1f),
+                        tokenColor = homeColors[player].copy(alpha = if (player == currentPlayer && currentPlayerMove != -1) colorAlphaState else 1f),
                         tokenPositions = tokenPositions,
                         boardCellsSize = boardCellsSize,
                         overlappingOffsets = overlappingOffsets,
