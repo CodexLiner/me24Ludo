@@ -64,7 +64,7 @@ fun DrawScope.drawPin(
     drawCircle(
         color = color,
         radius = circleRadius,
-        center = Offset(adjustedCenter.x, adjustedCenter.y + radius * 0.8f)
+        center = Offset(adjustedCenter.x, adjustedCenter.y + radius * 0.9f)
     )
 }
 
