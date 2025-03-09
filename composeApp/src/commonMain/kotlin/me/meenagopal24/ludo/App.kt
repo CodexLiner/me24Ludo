@@ -46,6 +46,7 @@ import me.meenagopal24.ludo.canvas.drawLudoBoardGrid
 import me.meenagopal24.ludo.canvas.drawPathArrows
 import me.meenagopal24.ludo.canvas.drawPin
 import me.meenagopal24.ludo.canvas.drawSafeAreas
+import me.meenagopal24.ludo.game.Me24LudoBoard
 import me.meenagopal24.ludo.paths.getPlayerFourPath
 import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
@@ -74,12 +75,10 @@ internal fun App() = AppTheme {
                     colors = listOf(Color(0xFFFBC2EB), Color(0xFFA6C1EE))
                 )
                 )) {
-            LudoBoardWithFourTokens(
+            Me24LudoBoard(
                 Modifier.background(Color.Transparent , RoundedCornerShape(10.dp)),
                 homeColors
-            ){ offset, boardCellSize ->
-
-            }
+            )
 
         }
     }
