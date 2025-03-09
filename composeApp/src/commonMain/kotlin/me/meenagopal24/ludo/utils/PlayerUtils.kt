@@ -1,10 +1,7 @@
 package me.meenagopal24.ludo.utils
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateOffsetAsState
@@ -13,10 +10,8 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
 import me.meenagopal24.ludo.paths.getPlayerFourPath
@@ -25,6 +20,7 @@ import me.meenagopal24.ludo.paths.getPlayerThreePath
 import me.meenagopal24.ludo.paths.getPlayerTwoPath
 
 val homeOffsets = listOf(0 to 0, 9 to 0, 9 to 9, 0 to 9)
+
 val safeZones = listOf(
     Pair(1, 6),   // Home Color 0
     Pair(6, 2),   // Default Color
@@ -36,6 +32,17 @@ val safeZones = listOf(
     Pair(2, 8)    // Default Color
 )
 
+val winningZones = listOf(
+    Pair(6, 6),
+    Pair(6, 7),
+    Pair(6, 8),
+    Pair(7, 6),
+    Pair(7, 7),
+    Pair(7, 8),
+    Pair(8, 6),
+    Pair(8, 7),
+    Pair(8, 8)
+)
 
 fun getHomeOffset(
     startX: Float,
@@ -130,4 +137,28 @@ fun detectOverlaps(
 //        Logger.d("Collision detected at $position involving: $collisionDetails")
 //    }
 }
+
+
+fun calculateAlpha(
+    player: Int,
+    token: Int,
+    currentPlayerMove: Int,
+    colorAlphaState: Float,
+    tokenPositions: List<SnapshotStateList<Int>>,
+    playerPaths: List<SnapshotStateList<Pair<Int, Int>>>
+): Float {
+    val tokenPosition = tokenPositions[player][token]
+
+    val isWinningZone = if (tokenPosition != -1) {
+        winningZones.contains(playerPaths[player][tokenPosition])
+    } else {
+        false
+    }
+    return when {
+        tokenPosition == -1 && currentPlayerMove == 6 -> colorAlphaState
+        tokenPosition != -1 && currentPlayerMove != -1 && !isWinningZone -> colorAlphaState
+        else -> 1f
+    }
+}
+
 

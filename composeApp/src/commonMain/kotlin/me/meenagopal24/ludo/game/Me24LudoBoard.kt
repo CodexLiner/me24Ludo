@@ -45,6 +45,7 @@ import me.meenagopal24.ludo.paths.getPlayerFourPath
 import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
 import me.meenagopal24.ludo.paths.getPlayerTwoPath
+import me.meenagopal24.ludo.utils.calculateAlpha
 import me.meenagopal24.ludo.utils.detectOverlaps
 import me.meenagopal24.ludo.utils.getAnimatedActiveState
 import me.meenagopal24.ludo.utils.getAnimatedOffset
@@ -54,8 +55,6 @@ import me.meenagopal24.ludo.utils.homeOffsets
 import me.meenagopal24.ludo.utils.safeZones
 
 @OptIn(ExperimentalLayoutApi::class)
-
-
 @Composable
 fun Me24LudoBoard(
     background: Modifier,
@@ -64,7 +63,7 @@ fun Me24LudoBoard(
     playersCount: Int = 4,
 ) {
     val screenSize = getScreenSize().apply {
-        width -= 16f
+        width -= padding
     }
 
     val boardCellsSize = with(LocalDensity.current) { (screenSize.width.dp / 15).toPx() }
@@ -173,7 +172,16 @@ fun Me24LudoBoard(
             /** draw players and their tokens*/
             repeat(playersCount) { player ->
                 repeat(4) { token ->
-                    val alpha = if (tokenPositions[player][token] == -1 && currentPlayerMove == 6) colorAlphaState else if (tokenPositions[player][token] != -1 && currentPlayerMove != -1) colorAlphaState else 1f
+
+                    val alpha = calculateAlpha(
+                        player = player,
+                        token = token,
+                        currentPlayerMove = currentPlayerMove,
+                        tokenPositions = tokenPositions,
+                        playerPaths = playerPaths,
+                        colorAlphaState = colorAlphaState,
+                    )
+
                     drawLudoTokens(
                         boardOffSet = Offset(startX, startY),
                         player = player,
