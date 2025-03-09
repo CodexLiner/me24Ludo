@@ -134,7 +134,7 @@ fun Me24LudoBoard(
                             }
                     },
                     onFirstMove = {
-                        if (currentPlayerMove >= 5) {
+                        if (currentPlayerMove == 6) {
                             moveToken(currentPlayer, it)
                             currentPlayerMove = -1
                         }
