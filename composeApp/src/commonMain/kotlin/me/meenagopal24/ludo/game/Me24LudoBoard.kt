@@ -67,24 +67,14 @@ fun Me24LudoBoard(
     }
 
     val boardCellsSize = with(LocalDensity.current) { (screenSize.width.dp / 15).toPx() }
-
     var currentPlayer by remember { mutableStateOf(0) }
     var currentPlayerMove by remember { mutableStateOf(-1) }
 
-    var expanded by remember { mutableStateOf(false) }
     var overlappingState = remember { mutableListOf<Pair<Offset, Int?>>() }
     val overlappingOffsets = remember { mutableMapOf<Offset, Int>() }
-    val tempSafeZone = remember { mutableMapOf<Pair<Int, Int>, Boolean>() }
     val colorAlphaState = getAnimatedActiveState()
 
-    val playerPaths = remember {
-        listOf(
-            getPlayerOnePath(),
-            getPlayerTwoPath(),
-            getPlayerThreePath(),
-            getPlayerFourPath()
-        )
-    }
+    val playerPaths = remember { listOf(getPlayerOnePath(), getPlayerTwoPath(), getPlayerThreePath(), getPlayerFourPath()) }
 
     val tokenPositions = remember { List(4) { mutableStateListOf(-1, -1, -1, -1) } }
     val coroutineScope = rememberCoroutineScope()
@@ -188,6 +178,9 @@ fun Me24LudoBoard(
         /**
          * is use less part for testing purpose only
          */
+
+        var expanded by remember { mutableStateOf(false) }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         val haptic = LocalHapticFeedback.current
