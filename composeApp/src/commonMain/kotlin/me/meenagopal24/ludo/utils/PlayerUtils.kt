@@ -1,5 +1,6 @@
 package me.meenagopal24.ludo.utils
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -12,8 +13,10 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
 import me.meenagopal24.ludo.paths.getPlayerFourPath
@@ -66,11 +69,9 @@ fun getAnimatedOffset(
     return animateOffsetAsState(
         targetValue = targetOffset,
         animationSpec = keyframes {
-            durationMillis = 120
-            targetOffset.copy(y = targetOffset.y - boardCellsSize / 2) at 150 with FastOutLinearInEasing
-            targetOffset.copy(y = targetOffset.y + boardCellsSize / 4) at 200 with LinearOutSlowInEasing
-            targetOffset.copy(y = targetOffset.y - boardCellsSize / 8) at 300 with FastOutSlowInEasing
-            targetOffset at 100
+            durationMillis = 180
+            targetOffset.copy(y = targetOffset.y - boardCellsSize / 10) at 80 with FastOutLinearInEasing
+            targetOffset at 180
         }
     )
 }
