@@ -23,13 +23,22 @@ fun DrawScope.drawPin(
     val circleRadius = radius * 0.5f
 
     val numberOfOverlappingContent = overlappingState.find { it.first == center }?.second ?: 1
+    val currentIndex = pinDrawTracker.getOrPut(center) { 0 }
+
+    val gridSpacing = boardCellsSize * 0.2f
+    val positionOffsets = listOf(
+        Offset(-gridSpacing, -gridSpacing),
+        Offset(gridSpacing, -gridSpacing),
+        Offset(-gridSpacing, gridSpacing),
+        Offset(gridSpacing, gridSpacing)
+    )
 
     val adjustedCenter = if (numberOfOverlappingContent == 1) {
         center.copy(y = center.y - boardCellsSize / 2.5f)
+    } else if (numberOfOverlappingContent in 3..4) {
+        val offset = positionOffsets.getOrElse(currentIndex % 4) { Offset.Zero }
+        Offset(center.x + offset.x, center.y - boardCellsSize / 2f + offset.y)
     } else {
-        val currentIndex = pinDrawTracker[center] ?: 0
-        pinDrawTracker[center] = currentIndex + 1
-
         val maxOffset = boardCellsSize * 0.15f
         val angle = (currentIndex * (360f / numberOfOverlappingContent)) * (PI / 180).toFloat()
         val shiftX = (maxOffset * cos(angle))
@@ -37,6 +46,8 @@ fun DrawScope.drawPin(
 
         Offset(center.x + shiftX, center.y - boardCellsSize / 2.5f + shiftY)
     }
+
+    pinDrawTracker[center] = (currentIndex + 1) % numberOfOverlappingContent
 
     val startX = adjustedCenter.x - radius
     val endX = adjustedCenter.x + radius
@@ -60,7 +71,6 @@ fun DrawScope.drawPin(
     }
     drawPath(path = path, color = "#272635".toColor(), style = Fill)
 
-    // Draw Center Circle inside the Arch
     drawCircle(
         color = color,
         radius = circleRadius,
