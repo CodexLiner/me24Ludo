@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,9 +37,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
-import co.touchlab.kermit.Logger
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.meenagopal24.ludo.canvas.drawPin
@@ -47,11 +45,13 @@ import me.meenagopal24.ludo.paths.getPlayerFourPath
 import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
 import me.meenagopal24.ludo.paths.getPlayerTwoPath
+import me.meenagopal24.ludo.utils.detectOverlaps
 import me.meenagopal24.ludo.utils.getAnimatedActiveState
 import me.meenagopal24.ludo.utils.getAnimatedOffset
 import me.meenagopal24.ludo.utils.getHomeOffset
 import me.meenagopal24.ludo.utils.getScreenSize
 import me.meenagopal24.ludo.utils.homeOffsets
+import me.meenagopal24.ludo.utils.safeZones
 
 @OptIn(ExperimentalLayoutApi::class)
 
@@ -144,22 +144,43 @@ fun Me24LudoBoard(
             }
         }
 
-
         drawLudoBoard(
             modifier = modifier.width(screenSize.width.dp).aspectRatio(1f).clip(RoundedCornerShape(10.dp)).border(1.dp, Color.Black, RoundedCornerShape(10.dp)),
             homeColors = homeColors,
             boardCellsSize = boardCellsSize,
         ) { startX, startY ->
 
+            detectOverlaps(tokenPositions) { collisions ->
+                collisions.forEach { (position, tripletList) ->
+                    val (row, col) = position
+
+                    if (Pair(col, row) in safeZones) return@forEach
+
+                    if (tripletList.size == 2) {
+                        val (first, second) = tripletList
+                        val (player1, token1, _) = first
+                        val (player2, token2, _) = second
+                        if (player1 != player2) {
+                            tokenPositions[if (player1 == currentPlayer) player2 else player1][if (player1 == currentPlayer) token2 else token1] = -1
+                        }
+                    }
+                }
+
+                overlappingState = collisions.keys.map { (row, col) ->
+                    Pair(Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2), collisions[Pair(row, col)]?.size)
+                }.toMutableStateList()
+            }
             /** draw players and their tokens*/
             repeat(playersCount) { player ->
                 repeat(4) { token ->
+                    val alpha = if (tokenPositions[player][token] == -1 && currentPlayerMove == 6) colorAlphaState else if (tokenPositions[player][token] != -1 && currentPlayerMove != -1) colorAlphaState else 1f
                     drawLudoTokens(
                         boardOffSet = Offset(startX, startY),
                         player = player,
                         token = token,
+                        overlappingState = overlappingState,
                         tokenOffsets = tokenOffsets,
-                        tokenColor = homeColors[player].copy(alpha = if (player == currentPlayer && currentPlayerMove != -1) colorAlphaState else 1f),
+                        tokenColor = homeColors[player].copy(alpha = if (player == currentPlayer) alpha else 1f),
                         tokenPositions = tokenPositions,
                         boardCellsSize = boardCellsSize,
                         overlappingOffsets = overlappingOffsets,
@@ -182,10 +203,10 @@ fun Me24LudoBoard(
 
             repeat(6) { index ->
                 Button(onClick = {
-                    currentPlayerMove = index
+                    currentPlayerMove = index+1
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 }) {
-                    Text(text = "Move $index")
+                    Text(text = "Move ${index + 1}")
                 }
             }
             Button(onClick = {
@@ -217,7 +238,8 @@ fun DrawScope.drawLudoTokens(
     boardCellsSize: Float,
     overlappingOffsets: MutableMap<Offset, Int>,
     tokenPositions: List<SnapshotStateList<Int>>,
-    tokenOffsets: List<List<State<Offset>>>
+    tokenOffsets: List<List<State<Offset>>>,
+    overlappingState: MutableList<Pair<Offset, Int?>>
 ) {
     val tokenOffset = if (tokenPositions[player][token] == -1) getHomeOffset(
         boardOffSet.x,
@@ -229,7 +251,7 @@ fun DrawScope.drawLudoTokens(
         center = tokenOffset,
         boardCellsSize = boardCellsSize,
         color = tokenColor,
-        overlappingState = listOf(),
+        overlappingState = overlappingState,
         pinDrawTracker = overlappingOffsets
     )
 }
