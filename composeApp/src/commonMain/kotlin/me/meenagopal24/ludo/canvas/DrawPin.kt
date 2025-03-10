@@ -60,7 +60,7 @@ fun DrawScope.drawPin(
         sweepAngle = 180f,
         useCenter = false,
         topLeft = Offset(startX, adjustedCenter.y),
-        size = Size(diameter, diameter),
+        size = Size(diameter, diameter * 1.02f)
     )
 
     val path = Path().apply {
@@ -69,6 +69,7 @@ fun DrawScope.drawPin(
         lineTo(endX, archBottomY)
         close()
     }
+
     drawPath(path = path, color = "#272635".toColor(), style = Fill)
 
     drawCircle(
