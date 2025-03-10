@@ -1,11 +1,11 @@
 package me.meenagopal24.ludo.move
 
 import androidx.compose.ui.geometry.Offset
-import co.touchlab.kermit.Logger
 import me.meenagopal24.ludo.paths.getPlayerFourPath
 import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
 import me.meenagopal24.ludo.paths.getPlayerTwoPath
+import kotlin.math.roundToInt
 
 object PlayerMovement {
     private val playerPaths = listOf(
@@ -15,10 +15,10 @@ object PlayerMovement {
         getPlayerFourPath()
     )
     private val playerHomePaths = listOf(
-        listOf(Pair(1, 1), Pair(1, 3), Pair(3, 1), Pair(3, 3)),
-        listOf(Pair(1, 10), Pair(1, 12), Pair(3, 10), Pair(3, 12)),
-        listOf(Pair(10, 10), Pair(10, 12), Pair(12, 10), Pair(12, 12)),
-        listOf(Pair(10, 1), Pair(10, 3), Pair(12, 1), Pair(12, 3)),
+        listOf(Pair(2, 2), Pair(2, 4), Pair(4, 2), Pair(4, 4)),
+        listOf(Pair(2, 11), Pair(2, 13), Pair(4, 11), Pair(4, 13)),
+        listOf(Pair(11, 11), Pair(11, 13), Pair(13, 11), Pair(13, 13)),
+        listOf(Pair(11, 2), Pair(11, 4), Pair(13, 2), Pair(13, 4)),
     )
 
     fun movePlayer(currentPlayer: Int, offset: Offset, onFirstMove : (Int) -> Unit, onMove: (Int) -> Unit) {
@@ -28,8 +28,10 @@ object PlayerMovement {
             onMove(path.indexOf(Pair(offset.x.toInt() , offset.y.toInt())))
         else {
             val homePath = playerHomePaths[currentPlayer]
-            if (homePath.indexOf(Pair(offset.x.toInt() , offset.y.toInt())) >= 0){
-                onFirstMove(homePath.indexOf(Pair(offset.x.toInt() , offset.y.toInt())))
+            val roundedOffset = Pair(offset.x.roundToInt(), offset.y.roundToInt())
+            val matchedIndex = homePath.indexOf(roundedOffset)
+            if (matchedIndex >= 0) {
+                onFirstMove(matchedIndex)
             }
         }
     }

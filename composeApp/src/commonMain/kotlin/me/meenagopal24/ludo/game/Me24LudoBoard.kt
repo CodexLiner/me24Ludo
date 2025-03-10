@@ -94,7 +94,14 @@ fun Me24LudoBoard(
             detectTapGestures { offset ->
                 val (col, row) = offset.x / boardCellsSize to offset.y / boardCellsSize
                 PlayerMovement.movePlayer(
-                    currentPlayer, Offset(row, col),
+                    currentPlayer = currentPlayer,
+                    offset = Offset(row, col),
+                    onFirstMove = { index ->
+                        if (currentPlayerMove == 6 && tokenPositions[currentPlayer][index] == -1) {
+                            tokenPositions[currentPlayer][index] = 0
+                            currentPlayerMove = -1
+                        }
+                    },
                     onMove = { newPosition ->
                         tokenPositions[currentPlayer].indexOf(newPosition).takeIf { it >= 0 }
                             ?.let { tokenIndex ->
@@ -109,12 +116,6 @@ fun Me24LudoBoard(
                                     }
                                 }
                             }
-                    },
-                    onFirstMove = { index ->
-                        if (currentPlayerMove == 6) {
-                            tokenPositions[currentPlayer][index] = 0
-                            currentPlayerMove = -1
-                        }
                     }
                 )
             }
