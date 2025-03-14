@@ -111,8 +111,26 @@ fun Me24LudoBoard(
     }
 
     LaunchedEffect(currentPlayerMove) {
-        if (tokenPositions[currentPlayer].all { it == -1 } && currentPlayerMove > 0 && currentPlayerMove != 6 ) {
+        if (tokenPositions[currentPlayer].all { it == -1 } && currentPlayerMove > 0 && currentPlayerMove != 6) {
             currentPlayer++
+        } else tokenPositions[currentPlayer].filter { it != -1 }.let { list ->
+            if (list.isNotEmpty() && list.size == 1 && currentPlayerMove !in listOf(-1 , 6)) {
+                val indexValue = list.first()
+                val index = tokenPositions[currentPlayer].indexOf(indexValue)
+                index.takeIf { it > -1 }?.let { tokenIndex ->
+                    val startPos = tokenPositions[currentPlayer][tokenIndex]
+                    val endPos = (startPos + currentPlayerMove).coerceAtMost(playerPaths[currentPlayer].size - 1)
+                    coroutineScope.launch {
+                        (startPos..endPos).forEach { pos ->
+                            tokenPositions[currentPlayer][tokenIndex] = pos
+                            delay(250)
+                        }
+                        movementInProgress = false
+                        currentPlayer = currentPlayer.nextPlayer(playersCount = playersCount, currentMove = currentPlayerMove)
+                        currentPlayerMove = -1
+                    }
+                }
+            }
         }
     }
 
@@ -143,7 +161,7 @@ fun Me24LudoBoard(
                                 coroutineScope.launch {
                                     (startPos..endPos).forEach { pos ->
                                         tokenPositions[currentPlayer][tokenIndex] = pos
-                                        delay(300)
+                                        delay(250)
                                     }
                                     movementInProgress = false
                                     currentPlayer = currentPlayer.nextPlayer(playersCount = playersCount, currentMove = currentPlayerMove)
