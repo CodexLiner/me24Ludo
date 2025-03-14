@@ -1,5 +1,7 @@
 package me.meenagopal24.ludo.utils
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -96,6 +98,25 @@ fun getAnimatedActiveState(): Float {
     )
     return alpha
 }
+
+@Composable
+fun getAnimatedBorderColor(): Color {
+    val infiniteTransition = rememberInfiniteTransition()
+    val animatedBorderColor by infiniteTransition.animateColor(
+        initialValue = Color.White,
+        targetValue = listOf(Color.Yellow, Color.Cyan, Color.Magenta, Color.Red).random(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+    return animatedBorderColor
+}
+
+fun nextPlayer(current: Int, playersCount: Int): Int {
+    return (current + 1) % playersCount
+}
+
 
 
 fun detectOverlaps(
