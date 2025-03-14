@@ -81,11 +81,9 @@ fun Me24LudoBoard(
     padding: Float = 10f,
     playersCount: Int = 4,
 ) {
-    val screenSize = getScreenSize().apply {
-        width -= padding
-    }
-
+    val screenSize = remember { getScreenSize().apply { width -= padding } }
     val boardCellsSize = with(LocalDensity.current) { (screenSize.width.dp / 15).toPx() }
+
     var currentPlayer by remember { mutableStateOf(0) }
     var currentPlayerMove by remember { mutableStateOf(-1) }
     var movementInProgress by remember { mutableStateOf(false) }
@@ -111,14 +109,16 @@ fun Me24LudoBoard(
     }
 
     LaunchedEffect(currentPlayerMove) {
-        if (tokenPositions[currentPlayer].all { it == -1 } && currentPlayerMove > 0 && currentPlayerMove != 6) {
-            currentPlayer++
-        } else tokenPositions[currentPlayer].filter { it != -1 }.let { list ->
-            if (list.isNotEmpty() && list.size == 1 && currentPlayerMove !in listOf(-1 , 6)) {
-                val indexValue = list.first()
-                val index = tokenPositions[currentPlayer].indexOf(indexValue)
-                index.takeIf { it > -1 }?.let { tokenIndex ->
-                    movementInProgress = true
+        val playerTokens = tokenPositions[currentPlayer]
+        val availableTokens = playerTokens.filter { it != -1 }
+
+        if (playerTokens.all { it == -1 } && currentPlayerMove > 0 && currentPlayerMove != 6) {
+            currentPlayer = (currentPlayer + 1) % playersCount
+        } else if (availableTokens.size == 1 && currentPlayerMove !in listOf(-1, 6)) {
+            val tokenIndex = playerTokens.indexOf(availableTokens.first())
+            coroutineScope.launch {
+                movementInProgress = true
+                coroutineScope.launch {
                     animateTokenMovement(
                         tokenPositions = tokenPositions[currentPlayer],
                         tokenIndex = tokenIndex,
@@ -132,7 +132,6 @@ fun Me24LudoBoard(
             }
         }
     }
-
 
     Column(
         modifier = background.fillMaxWidth(),
