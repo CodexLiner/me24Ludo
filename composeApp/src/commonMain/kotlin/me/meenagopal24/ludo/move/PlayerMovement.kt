@@ -1,5 +1,6 @@
 package me.meenagopal24.ludo.move
 
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
 import me.meenagopal24.ludo.paths.getPlayerFourPath
 import me.meenagopal24.ludo.paths.getPlayerOnePath

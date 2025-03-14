@@ -30,11 +30,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
@@ -53,14 +52,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
 import me.meenagopal24.ludo.canvas.drawPin
-import me.meenagopal24.ludo.move.PlayerMovement
-import me.meenagopal24.ludo.paths.getPlayerFourPath
-import me.meenagopal24.ludo.paths.getPlayerOnePath
-import me.meenagopal24.ludo.paths.getPlayerThreePath
-import me.meenagopal24.ludo.paths.getPlayerTwoPath
-import me.meenagopal24.ludo.utils.animateTokenMovement
 import me.meenagopal24.ludo.utils.calculateAlpha
 import me.meenagopal24.ludo.utils.detectOverlaps
 import me.meenagopal24.ludo.utils.getAnimatedActiveState
@@ -70,8 +63,6 @@ import me.meenagopal24.ludo.utils.getHomeOffset
 import me.meenagopal24.ludo.utils.getScreenSize
 import me.meenagopal24.ludo.utils.homeOffsets
 import me.meenagopal24.ludo.utils.ifNotTrue
-import me.meenagopal24.ludo.utils.nextPlayer
-import me.meenagopal24.ludo.utils.safeZones
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -81,57 +72,56 @@ fun Me24LudoBoard(
     padding: Float = 10f,
     playersCount: Int = 4,
 ) {
+
+    val viewModel : Me24LudoBoardViewModel = viewModel()
+    val currentPlayer by viewModel.currentPlayer.collectAsState()
+    val currentMove by viewModel.currentMove.collectAsState()
+    val movementInProgress by viewModel.movementInProgress.collectAsState()
+    val tokenPositions by viewModel.tokenPositions.collectAsState()
+
+
     val screenSize = remember { getScreenSize().apply { width -= padding } }
     val boardCellsSize = with(LocalDensity.current) { (screenSize.width.dp / 15).toPx() }
+    val colorAlphaState = getAnimatedActiveState()
 
-    var currentPlayer by remember { mutableStateOf(0) }
-    var currentPlayerMove by remember { mutableStateOf(-1) }
-    var movementInProgress by remember { mutableStateOf(false) }
 
     var overlappingState = remember { mutableListOf<Pair<Offset, Int?>>() }
     val overlappingOffsets = remember { mutableMapOf<Offset, Int>() }
-    val colorAlphaState = getAnimatedActiveState()
 
-    val playerPaths = remember { listOf(getPlayerOnePath(), getPlayerTwoPath(), getPlayerThreePath(), getPlayerFourPath()) }
 
-    val tokenPositions = remember { List(4) { mutableStateListOf(-1, -1, -1, -1) } }
-    val coroutineScope = rememberCoroutineScope()
-
-    val tokenOffsets = playerPaths.mapIndexed { playerIndex, path ->
+    val tokenOffsets = viewModel.playerPaths.mapIndexed { playerIndex, path ->
         tokenPositions[playerIndex].map { position ->
             getAnimatedOffset(path, position.coerceAtLeast(0), boardCellsSize)
         }
     }
 
-    LaunchedEffect(currentPlayer) {
-        if (currentPlayer >= playersCount) currentPlayer = 0
-        currentPlayerMove = -1
+    /**
+     * launched effect to set player count
+     */
+    LaunchedEffect(Unit) {
+        viewModel.setPlayerCount(playersCount)
     }
 
-    LaunchedEffect(currentPlayerMove) {
+    /**
+     * launched effect to set current player
+     */
+    LaunchedEffect(currentPlayer) {
+        viewModel.setCurrentPlayer(currentPlayer % playersCount)
+        viewModel.resetCurrentMove()
+    }
+
+    /**
+     * launched effect to set current move
+     */
+    LaunchedEffect(currentMove) {
         val playerTokens = tokenPositions[currentPlayer]
         val availableTokens = playerTokens.filter { it != -1 }
-
-        if (playerTokens.all { it == -1 } && currentPlayerMove > 0 && currentPlayerMove != 6) {
-            currentPlayer = (currentPlayer + 1) % playersCount
-        } else if (availableTokens.size == 1 && currentPlayerMove !in listOf(-1, 6)) {
-            val tokenIndex = playerTokens.indexOf(availableTokens.first())
-            coroutineScope.launch {
-                movementInProgress = true
-                coroutineScope.launch {
-                    animateTokenMovement(
-                        tokenPositions = tokenPositions[currentPlayer],
-                        tokenIndex = tokenIndex,
-                        moveAmount = currentPlayerMove,
-                        playerPathSize = playerPaths[currentPlayer].size
-                    )
-                    movementInProgress = false
-                    currentPlayer = currentPlayer.nextPlayer(playersCount, currentPlayerMove)
-                    currentPlayerMove = -1
-                }
-            }
+        when {
+            playerTokens.all { it == -1 } && currentMove in 1..5 -> viewModel.setCurrentPlayer((currentPlayer + 1) % playersCount)
+            availableTokens.size == 1 && currentMove !in listOf(-1, 6) -> viewModel.autoMovePlayer(playerTokens.indexOf(availableTokens.first()))
         }
     }
+
 
     Column(
         modifier = background.fillMaxWidth(),
@@ -139,44 +129,17 @@ fun Me24LudoBoard(
     ) {
         val modifier = Modifier.pointerInput(Unit) {
             detectTapGestures { offset ->
-                val (col, row) = offset.x / boardCellsSize to offset.y / boardCellsSize
-                PlayerMovement.movePlayer(
-                    currentPlayer = currentPlayer,
-                    offset = Offset(row, col),
-                    onFirstMove = { index ->
-                        if (currentPlayerMove == 6 && tokenPositions[currentPlayer][index] == -1) {
-                            tokenPositions[currentPlayer][index] = 0
-                            currentPlayerMove = -1
-                        } else currentPlayer++
-                    },
-                    onMove = { newPosition ->
-                        tokenPositions[currentPlayer].indexOf(newPosition).takeIf { it >= 0 }
-                            ?.let { tokenIndex ->
-                                movementInProgress = true
-                                coroutineScope.launch {
-                                    animateTokenMovement(
-                                        tokenPositions = tokenPositions[currentPlayer],
-                                        tokenIndex = tokenIndex,
-                                        moveAmount = currentPlayerMove,
-                                        playerPathSize = playerPaths[currentPlayer].size
-                                    )
-                                    movementInProgress = false
-                                    currentPlayer = currentPlayer.nextPlayer(playersCount, currentPlayerMove)
-                                    currentPlayerMove = -1
-                                }
-                            }
-                    }
-                )
+                viewModel.movePlayer(currentPlayer , boardCellsSize , offset)
             }
         }
 
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = padding.dp ,
             vertical = (padding / 2).dp), horizontalArrangement = Arrangement.SpaceBetween) {
             DiceBox(homeColors = homeColors ,player = 0 , isActive = currentPlayer == 0) {
-                currentPlayerMove = it
+                viewModel.updateCurrentMove(it)
             }
             DiceBox(player = 1, homeColors = homeColors , isActive = currentPlayer == 1) {
-                currentPlayerMove = it
+                viewModel.updateCurrentMove(it)
             }
         }
 
@@ -188,27 +151,9 @@ fun Me24LudoBoard(
 
             detectOverlaps(tokenPositions) { collisions ->
                 movementInProgress.ifNotTrue {
-                    collisions.forEach { (position, tripletList) ->
-                        val (row, col) = position
-
-                        if (Pair(col, row) in safeZones) return@forEach
-
-                        if (tripletList.size == 2) {
-                            val (first, second) = tripletList
-                            val (player1, token1, _) = first
-                            val (player2, token2, _) = second
-                            if (player1 != player2) {
-                                tokenPositions[if (player1 == currentPlayer) player2 else player1][if (player1 == currentPlayer) token2 else token1] = -1
-                            }
-                        }
-                    }
+                    viewModel.handleCollisions(collisions)
                     overlappingState = collisions.keys.map { (row, col) ->
-                        Pair(
-                            Offset(
-                                col * boardCellsSize + boardCellsSize / 2,
-                                row * boardCellsSize + boardCellsSize / 2
-                            ), collisions[Pair(row, col)]?.size
-                        )
+                        Pair(Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2), collisions[Pair(row, col)]?.size)
                     }.toMutableStateList()
                 }
             }
@@ -221,9 +166,9 @@ fun Me24LudoBoard(
                     val alpha = calculateAlpha(
                         player = player,
                         token = token,
-                        currentPlayerMove = currentPlayerMove,
+                        currentPlayerMove = currentMove,
                         tokenPositions = tokenPositions,
-                        playerPaths = playerPaths,
+                        playerPaths = viewModel.playerPaths,
                         colorAlphaState = colorAlphaState,
                     )
                     drawLudoTokens(
@@ -243,11 +188,11 @@ fun Me24LudoBoard(
 
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = padding.dp ,  vertical = (padding / 2).dp), horizontalArrangement = Arrangement.SpaceBetween) {
             DiceBox(player = 3, homeColors = homeColors , isActive = currentPlayer == 3){
-                currentPlayerMove = it
+                viewModel.updateCurrentMove(it)
 
             }
             DiceBox(player = 2, homeColors = homeColors , isActive = currentPlayer == 2){
-                currentPlayerMove = it
+                viewModel.updateCurrentMove(it)
             }
         }
 
@@ -255,42 +200,8 @@ fun Me24LudoBoard(
          * is use less part for testing purpose only
          */
 
-        var expanded by remember { mutableStateOf(false) }
+        DebugControls(viewModel = viewModel)
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        val haptic = LocalHapticFeedback.current
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-
-            repeat(6) { index ->
-                Button(onClick = {
-                    currentPlayerMove = index+1
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                }) {
-                    Text(text = "Move ${index + 1}")
-                }
-            }
-            Button(onClick = {
-                expanded = true
-            }) {
-                Text(text = "CurrentPlayer  $currentPlayer")
-                DropdownMenu(expanded, onDismissRequest = {
-                    expanded = false
-                }) {
-                    repeat(4) {
-                        DropdownMenuItem(onClick = {
-                            currentPlayer = it
-                            expanded = false
-                        }, text = {
-                            Text("$it")
-                        })
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -366,4 +277,49 @@ fun DiceBox(player: Int, homeColors: List<Color>, isActive: Boolean = true , onD
     }
 }
 
+/**
+ * Todo remove later
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun DebugControls(viewModel: Me24LudoBoardViewModel) {
+
+    var expanded by remember { mutableStateOf(false) }
+    val currentPlayer by viewModel.currentPlayer.collectAsState()
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    val haptic = LocalHapticFeedback.current
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+
+        repeat(6) { index ->
+            Button(onClick = {
+                viewModel.updateCurrentMove(index + 1)
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            }) {
+                Text(text = "Move ${index + 1}")
+            }
+        }
+        Button(onClick = {
+            expanded = true
+        }) {
+            Text(text = "CurrentPlayer  $currentPlayer")
+            DropdownMenu(expanded, onDismissRequest = {
+                expanded = false
+            }) {
+                repeat(4) {
+                    DropdownMenuItem(onClick = {
+                        viewModel.setCurrentPlayer(it)
+                        expanded = false
+                    }, text = {
+                        Text("$it")
+                    })
+                }
+            }
+        }
+    }
+}
 
