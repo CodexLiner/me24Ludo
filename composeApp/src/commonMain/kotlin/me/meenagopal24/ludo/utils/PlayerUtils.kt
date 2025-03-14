@@ -16,6 +16,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
+import kotlinx.coroutines.delay
 import me.meenagopal24.ludo.paths.getPlayerFourPath
 import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
@@ -113,8 +114,19 @@ fun getAnimatedBorderColor(): Color {
     return animatedBorderColor
 }
 
-fun nextPlayer(current: Int, playersCount: Int): Int {
-    return (current + 1) % playersCount
+suspend fun animateTokenMovement(
+    tokenPositions: SnapshotStateList<Int>,
+    tokenIndex: Int,
+    moveAmount: Int,
+    playerPathSize: Int,
+    updateDelay: Long = 250L
+) {
+    val startPos = tokenPositions[tokenIndex]
+    val endPos = (startPos + moveAmount).coerceAtMost(playerPathSize - 1)
+    for (pos in startPos..endPos) {
+        tokenPositions[tokenIndex] = pos
+        delay(updateDelay)
+    }
 }
 
 

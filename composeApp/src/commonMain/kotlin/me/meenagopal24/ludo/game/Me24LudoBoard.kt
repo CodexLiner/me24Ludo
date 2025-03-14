@@ -53,7 +53,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.meenagopal24.ludo.canvas.drawPin
 import me.meenagopal24.ludo.move.PlayerMovement
@@ -61,6 +60,7 @@ import me.meenagopal24.ludo.paths.getPlayerFourPath
 import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
 import me.meenagopal24.ludo.paths.getPlayerTwoPath
+import me.meenagopal24.ludo.utils.animateTokenMovement
 import me.meenagopal24.ludo.utils.calculateAlpha
 import me.meenagopal24.ludo.utils.detectOverlaps
 import me.meenagopal24.ludo.utils.getAnimatedActiveState
@@ -118,17 +118,16 @@ fun Me24LudoBoard(
                 val indexValue = list.first()
                 val index = tokenPositions[currentPlayer].indexOf(indexValue)
                 index.takeIf { it > -1 }?.let { tokenIndex ->
-                    val startPos = tokenPositions[currentPlayer][tokenIndex]
-                    val endPos = (startPos + currentPlayerMove).coerceAtMost(playerPaths[currentPlayer].size - 1)
-                    coroutineScope.launch {
-                        (startPos..endPos).forEach { pos ->
-                            tokenPositions[currentPlayer][tokenIndex] = pos
-                            delay(250)
-                        }
-                        movementInProgress = false
-                        currentPlayer = currentPlayer.nextPlayer(playersCount = playersCount, currentMove = currentPlayerMove)
-                        currentPlayerMove = -1
-                    }
+                    movementInProgress = true
+                    animateTokenMovement(
+                        tokenPositions = tokenPositions[currentPlayer],
+                        tokenIndex = tokenIndex,
+                        moveAmount = currentPlayerMove,
+                        playerPathSize = playerPaths[currentPlayer].size
+                    )
+                    movementInProgress = false
+                    currentPlayer = currentPlayer.nextPlayer(playersCount, currentPlayerMove)
+                    currentPlayerMove = -1
                 }
             }
         }
@@ -155,16 +154,15 @@ fun Me24LudoBoard(
                         tokenPositions[currentPlayer].indexOf(newPosition).takeIf { it >= 0 }
                             ?.let { tokenIndex ->
                                 movementInProgress = true
-                                val pathSize = playerPaths[currentPlayer].size
-                                val startPos = tokenPositions[currentPlayer][tokenIndex]
-                                val endPos = (startPos + currentPlayerMove).coerceAtMost(pathSize - 1)
                                 coroutineScope.launch {
-                                    (startPos..endPos).forEach { pos ->
-                                        tokenPositions[currentPlayer][tokenIndex] = pos
-                                        delay(250)
-                                    }
+                                    animateTokenMovement(
+                                        tokenPositions = tokenPositions[currentPlayer],
+                                        tokenIndex = tokenIndex,
+                                        moveAmount = currentPlayerMove,
+                                        playerPathSize = playerPaths[currentPlayer].size
+                                    )
                                     movementInProgress = false
-                                    currentPlayer = currentPlayer.nextPlayer(playersCount = playersCount, currentMove = currentPlayerMove)
+                                    currentPlayer = currentPlayer.nextPlayer(playersCount, currentPlayerMove)
                                     currentPlayerMove = -1
                                 }
                             }
