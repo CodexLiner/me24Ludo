@@ -212,7 +212,10 @@ fun Me24LudoBoard(
                     }.toMutableStateList()
                 }
             }
-            /** draw players and their tokens*/
+
+            /**
+             * draw players and their tokens
+             */
             repeat(playersCount) { player ->
                 repeat(4) { token ->
                     val alpha = calculateAlpha(
