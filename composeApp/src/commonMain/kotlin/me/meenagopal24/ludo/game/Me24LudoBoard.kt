@@ -1,26 +1,17 @@
 package me.meenagopal24.ludo.game
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -41,17 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import me.meenagopal24.ludo.canvas.drawPin
 import me.meenagopal24.ludo.utils.calculateAlpha
@@ -132,67 +119,48 @@ fun Me24LudoBoard(
                 viewModel.movePlayer(currentPlayer , boardCellsSize , offset)
             }
         }
+        DicedBoard(padding , homeColors , currentPlayer , viewModel) {
+            drawLudoBoard(
+                modifier = modifier.width(screenSize.width.dp).aspectRatio(1f).clip(RoundedCornerShape(10.dp)).border(1.dp, getAnimatedBorderColor(), RoundedCornerShape(10.dp)),
+                homeColors = homeColors,
+                boardCellsSize = boardCellsSize,
+            ) { startX, startY ->
 
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = padding.dp ,
-            vertical = (padding / 2).dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            DiceBox(homeColors = homeColors ,player = 0 , isActive = currentPlayer == 0) {
-                viewModel.updateCurrentMove(it)
-            }
-            DiceBox(player = 1, homeColors = homeColors , isActive = currentPlayer == 1) {
-                viewModel.updateCurrentMove(it)
-            }
-        }
-
-        drawLudoBoard(
-            modifier = modifier.width(screenSize.width.dp).aspectRatio(1f).clip(RoundedCornerShape(10.dp)).border(1.dp, getAnimatedBorderColor(), RoundedCornerShape(10.dp)),
-            homeColors = homeColors,
-            boardCellsSize = boardCellsSize,
-        ) { startX, startY ->
-
-            detectOverlaps(tokenPositions) { collisions ->
-                movementInProgress.ifNotTrue {
-                    viewModel.handleCollisions(collisions)
-                    overlappingState = collisions.keys.map { (row, col) ->
-                        Pair(Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2), collisions[Pair(row, col)]?.size)
-                    }.toMutableStateList()
+                detectOverlaps(tokenPositions) { collisions ->
+                    movementInProgress.ifNotTrue {
+                        viewModel.handleCollisions(collisions)
+                        overlappingState = collisions.keys.map { (row, col) ->
+                            Pair(Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2), collisions[Pair(row, col)]?.size)
+                        }.toMutableStateList()
+                    }
                 }
-            }
 
-            /**
-             * draw players and their tokens
-             */
-            repeat(playersCount) { player ->
-                repeat(4) { token ->
-                    val alpha = calculateAlpha(
-                        player = player,
-                        token = token,
-                        currentPlayerMove = currentMove,
-                        tokenPositions = tokenPositions,
-                        playerPaths = viewModel.playerPaths,
-                        colorAlphaState = colorAlphaState,
-                    )
-                    drawLudoTokens(
-                        boardOffSet = Offset(startX, startY),
-                        player = player,
-                        token = token,
-                        overlappingState = overlappingState,
-                        tokenOffsets = tokenOffsets,
-                        tokenColor = homeColors[player].copy(alpha = if (player == currentPlayer) alpha else 1f),
-                        tokenPositions = tokenPositions,
-                        boardCellsSize = boardCellsSize,
-                        overlappingOffsets = overlappingOffsets,
-                    )
+                /**
+                 * draw players and their tokens
+                 */
+                repeat(playersCount) { player ->
+                    repeat(4) { token ->
+                        val alpha = calculateAlpha(
+                            player = player,
+                            token = token,
+                            currentPlayerMove = currentMove,
+                            tokenPositions = tokenPositions,
+                            playerPaths = viewModel.playerPaths,
+                            colorAlphaState = colorAlphaState,
+                        )
+                        drawLudoTokens(
+                            boardOffSet = Offset(startX, startY),
+                            player = player,
+                            token = token,
+                            overlappingState = overlappingState,
+                            tokenOffsets = tokenOffsets,
+                            tokenColor = homeColors[player].copy(alpha = if (player == currentPlayer) alpha else 1f),
+                            tokenPositions = tokenPositions,
+                            boardCellsSize = boardCellsSize,
+                            overlappingOffsets = overlappingOffsets,
+                        )
+                    }
                 }
-            }
-        }
-
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = padding.dp ,  vertical = (padding / 2).dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            DiceBox(player = 3, homeColors = homeColors , isActive = currentPlayer == 3){
-                viewModel.updateCurrentMove(it)
-
-            }
-            DiceBox(player = 2, homeColors = homeColors , isActive = currentPlayer == 2){
-                viewModel.updateCurrentMove(it)
             }
         }
 
@@ -232,48 +200,11 @@ fun DrawScope.drawLudoTokens(
 }
 
 @Composable
-fun DiceBox(player: Int, homeColors: List<Color>, isActive: Boolean = true , onDiceRoll : (Int) -> Unit) {
-    var diceRoll by remember { mutableStateOf(0) }
-    val animatedBorder = getAnimatedBorderColor()
-
-    Box(
-        modifier = Modifier
-            .size(65.dp)
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(homeColors[player], homeColors[player].copy(0.8f))
-                ),
-                shape = RoundedCornerShape(10.dp)
-            )
-            .then(if (isActive) Modifier.clickable {
-                diceRoll = (1..6).random()
-                onDiceRoll(diceRoll)
-            } else Modifier)
-            .border(
-                width = 1.dp,
-                color = if (isActive) animatedBorder else Color.Gray,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .graphicsLayer {
-                alpha = if (isActive) 1f else 0.5f // Fade effect for inactive dice
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        // Animated number transition
-        AnimatedContent(
-            targetState = diceRoll,
-            transitionSpec = {
-                (scaleIn(initialScale = 0.5f) + fadeIn()) togetherWith fadeOut()
-            },
-            label = "Dice Roll Animation"
-        ) { roll ->
-            Text(
-                text = roll.toString(),
-                fontSize = 26.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-        }
+private fun DicedBoard(padding: Float, homeColors: List<Color>, currentPlayer : Int, viewModel: Me24LudoBoardViewModel,  content: @Composable ColumnScope.() -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        DiceRow(padding = padding, homeColors = homeColors, currentPlayer = currentPlayer, viewModel = viewModel,)
+        content()
+        DiceRow(3 , endIndex = 2, padding = padding, homeColors = homeColors, currentPlayer = currentPlayer, viewModel = viewModel)
     }
 }
 
