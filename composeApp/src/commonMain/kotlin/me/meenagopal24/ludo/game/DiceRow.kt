@@ -40,18 +40,12 @@ fun DiceRow(
     currentPlayer: Int,
     viewModel: Me24LudoBoardViewModel,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = padding.dp ,
-            vertical = (padding / 2).dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            DiceBox(homeColors = homeColors ,player = startIndex , isActive = currentPlayer == startIndex) {
-                viewModel.updateCurrentMove(it)
-            }
-            DiceBox(player = endIndex, homeColors = homeColors , isActive = currentPlayer == endIndex) {
-                viewModel.updateCurrentMove(it)
-            }
+    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = padding.dp , vertical = (padding / 2).dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        DiceBox(homeColors = homeColors ,player = startIndex , isActive = currentPlayer == startIndex) {
+            viewModel.updateCurrentMove(it)
+        }
+        DiceBox(player = endIndex, homeColors = homeColors , isActive = currentPlayer == endIndex) {
+            viewModel.updateCurrentMove(it)
         }
     }
 }

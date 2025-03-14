@@ -201,7 +201,7 @@ fun DrawScope.drawLudoTokens(
 
 @Composable
 private fun DicedBoard(padding: Float, homeColors: List<Color>, currentPlayer : Int, viewModel: Me24LudoBoardViewModel,  content: @Composable ColumnScope.() -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth() , horizontalAlignment = Alignment.CenterHorizontally) {
         DiceRow(padding = padding, homeColors = homeColors, currentPlayer = currentPlayer, viewModel = viewModel,)
         content()
         DiceRow(3 , endIndex = 2, padding = padding, homeColors = homeColors, currentPlayer = currentPlayer, viewModel = viewModel)
