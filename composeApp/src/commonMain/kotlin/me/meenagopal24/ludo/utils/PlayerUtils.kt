@@ -35,6 +35,10 @@ val safeZones = listOf(
     Pair(2, 8)    // Default Color
 )
 
+val safeZoneIndexed = listOf(
+    0, 8, 13, 21, 26, 34, 39, 47
+)
+
 val winningZones = listOf(
     Pair(6, 6),
     Pair(6, 7),

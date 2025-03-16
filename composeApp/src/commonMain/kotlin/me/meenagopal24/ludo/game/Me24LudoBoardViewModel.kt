@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -15,14 +16,16 @@ import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
 import me.meenagopal24.ludo.paths.getPlayerTwoPath
 import me.meenagopal24.ludo.utils.nextPlayer
+import me.meenagopal24.ludo.utils.safeZoneIndexed
 import me.meenagopal24.ludo.utils.safeZones
 import multiplatform_app.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
+@OptIn(ExperimentalResourceApi::class)
 class Me24LudoBoardViewModel : ViewModel() {
     private val audioPlayer: AudioPlayer = createAudioPlayer()
-    @OptIn(ExperimentalResourceApi::class)
     private var stepUri = Res.getUri("files/step.mp3")
+    private var safeZoneUri = Res.getUri("files/safe.mp3")
     val currentPlayer = MutableStateFlow(0)
     val currentMove = MutableStateFlow(-1)
     val movementInProgress = MutableStateFlow(false)
@@ -56,12 +59,12 @@ class Me24LudoBoardViewModel : ViewModel() {
             isMoving(true)
             val startPos = tokenPositions.value[currentPlayer.value][tokenIndex]
             val endPos = (startPos + currentMove.value.coerceAtMost(playerPaths[currentPlayer.value].size - 1))
-            for (pos in startPos..endPos) {
-                audioPlayer.play(stepUri)
+            for (pos in (startPos + 1)..endPos) {
+                audioPlayer.play(if (pos in safeZoneIndexed) safeZoneUri else stepUri)
                 tokenPositions.value[currentPlayer.value][tokenIndex] = pos
                 delay(300)
             }
-            tokenPositions.emit(tokenPositions.value)
+
             isMoving(false)
             setCurrentPlayer(currentPlayer.value.nextPlayer(playersCount, currentMove.value))
             resetCurrentMove()
