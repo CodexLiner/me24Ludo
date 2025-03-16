@@ -29,7 +29,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
-
+            implementation("io.github.alexzhirkevich:compottie:2.0.0-rc04")
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)

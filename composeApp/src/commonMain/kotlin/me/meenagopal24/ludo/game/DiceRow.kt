@@ -5,12 +5,15 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,8 +21,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +35,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.alexzhirkevich.compottie.LottieComposition
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieAnimatable
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
+import kotlinx.coroutines.launch
 import me.meenagopal24.ludo.utils.getAnimatedBorderColor
+import multiplatform_app.composeapp.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @Composable
 fun DiceRow(
@@ -51,48 +65,53 @@ fun DiceRow(
 }
 
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
-fun DiceBox(player: Int, homeColors: List<Color>, isActive: Boolean = true , onDiceRoll : (Int) -> Unit) {
-    var diceRoll by remember { mutableStateOf(0) }
+fun DiceBox(
+    player: Int, homeColors: List<Color>, isActive: Boolean = true, onDiceRoll: (Int) -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    var diceNumber by remember { mutableStateOf(1) }
+
+    val composition by key(diceNumber) {
+        rememberLottieComposition {
+            LottieCompositionSpec.JsonString(
+                Res.readBytes("files/dice_$diceNumber.json").decodeToString()
+            )
+        }
+    }
+
+    val animation = rememberLottieAnimatable()
+
     val animatedBorder = getAnimatedBorderColor()
 
     Box(
-        modifier = Modifier
-            .size(65.dp)
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(homeColors[player], homeColors[player].copy(0.8f))
-                ),
-                shape = RoundedCornerShape(10.dp)
-            )
-            .then(if (isActive) Modifier.clickable {
-                diceRoll = (1..6).random()
-                onDiceRoll(diceRoll)
-            } else Modifier)
-            .border(
-                width = 1.dp,
-                color = if (isActive) animatedBorder else Color.Gray,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .graphicsLayer {
-                alpha = if (isActive) 1f else 0.5f // Fade effect for inactive dice
-            },
+        modifier = Modifier.size(70.dp).background(
+            brush = Brush.verticalGradient(
+                colors = listOf(homeColors[player], homeColors[player].copy(0.8f))
+            ), shape = RoundedCornerShape(10.dp)
+        ).border(
+            width = 1.dp,
+            color = if (isActive) animatedBorder else Color.Gray,
+            shape = RoundedCornerShape(10.dp)
+        ).graphicsLayer { alpha = if (isActive) 1f else 0.5f },
         contentAlignment = Alignment.Center
     ) {
-        // Animated number transition
-        AnimatedContent(
-            targetState = diceRoll,
-            transitionSpec = {
-                (scaleIn(initialScale = 0.5f) + fadeIn()) togetherWith fadeOut()
-            },
-            label = "Dice Roll Animation"
-        ) { roll ->
-            Text(
-                text = roll.toString(),
-                fontSize = 26.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        Image(
+            modifier = Modifier.fillMaxSize().then(
+                if (isActive) Modifier.clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) {
+                    scope.launch {
+                        diceNumber = (1..6).random()
+                        animation.animate(composition, initialProgress = 0f)
+                        onDiceRoll(diceNumber)
+                    }
+                } else Modifier), painter = rememberLottiePainter(
+                forceOffscreenRendering = true,
+                composition = composition,
+                progress = { animation.progress },
+            ), contentDescription = "Lottie dice animation"
+        )
     }
 }
