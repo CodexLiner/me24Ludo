@@ -62,13 +62,13 @@ class Me24LudoBoardViewModel : ViewModel() {
             val startPos = tokenPositions.value[currentPlayer.value][tokenIndex]
             val endPos = (startPos + currentMove.value.coerceAtMost(playerPaths[currentPlayer.value].size - 1))
             for (pos in (startPos + 1)..endPos) {
+                tokenPositions.value[currentPlayer.value][tokenIndex] = pos
                 when (pos) {
                     in setOf(56) -> audioPlayer.play(winningZoneUri)
                     in safeZoneIndexed -> audioPlayer.play(if (pos == endPos) safeZoneUri else stepUri)
                     else -> audioPlayer.play(stepUri)
                 }
-                tokenPositions.value[currentPlayer.value][tokenIndex] = pos
-                delay(300)
+                delay(400)
             }
 
             isMoving(false)
