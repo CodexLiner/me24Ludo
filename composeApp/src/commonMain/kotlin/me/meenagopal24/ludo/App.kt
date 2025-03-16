@@ -1,8 +1,12 @@
 package me.meenagopal24.ludo
 
+
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,9 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -36,7 +43,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import co.touchlab.kermit.Logger
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.animateLottieCompositionAsState
+import io.github.alexzhirkevich.compottie.*
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.meenagopal24.ludo.canvas.drawHomeAreas
 import me.meenagopal24.ludo.canvas.drawHomeEntriesArrows
@@ -57,6 +70,8 @@ import me.meenagopal24.ludo.utils.getAnimatedOffset
 import me.meenagopal24.ludo.utils.getHomeOffset
 import me.meenagopal24.ludo.utils.homeOffsets
 import me.meenagopal24.ludo.utils.safeZones
+import multiplatform_app.composeapp.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 fun String.toColor(): Color {
     val hex = removePrefix("#")
@@ -69,8 +84,14 @@ internal fun App() = AppTheme {
     Column(
         modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val homeColors = listOf("#eb7434".toColor(), "#09b55c".toColor(), "#adcf17".toColor(), "#9294e8".toColor())
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize() .background(
+        val homeColors = listOf(
+            "#eb7434".toColor(),
+            "#09b55c".toColor(),
+            "#adcf17".toColor(),
+            "#9294e8".toColor()
+        )
+        Box(
+            contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize().background(
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFFFBC2EB), Color(0xFFA6C1EE))
                 )
@@ -84,6 +105,42 @@ internal fun App() = AppTheme {
     }
 }
 
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+fun ComposeLottie(onDiceRoll: (Int) -> Unit = {}) {
+    val scope = rememberCoroutineScope()
+    var diceNumber by remember { mutableStateOf(1) }
+
+    val composition by key(diceNumber) {
+        rememberLottieComposition {
+            LottieCompositionSpec.JsonString(
+                Res.readBytes("files/dice_$diceNumber.json").decodeToString()
+            )
+        }
+    }
+
+    val animation = rememberLottieAnimatable()
+    Image(
+        modifier = Modifier.clickable(
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() }
+        ) {
+            scope.launch {
+                diceNumber = (1..6).random()
+                animation.animate(composition, initialProgress = 0f)
+                onDiceRoll(diceNumber)
+            }
+        },
+        painter = rememberLottiePainter(
+            forceOffscreenRendering = true,
+            composition = composition,
+            progress = { animation.progress },
+        ),
+        contentDescription = "Lottie dice animation"
+    )
+}
+
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LudoBoardWithFourTokens(
@@ -95,7 +152,7 @@ fun LudoBoardWithFourTokens(
     var currentPlayer by remember { mutableStateOf(0) } // Track current player
     var overlappingState = remember { mutableListOf<Pair<Offset, Int?>>() }
     val overlappingOffsets = remember { mutableMapOf<Offset, Int>() }
-    val tempSafeZone =  remember { mutableMapOf<Pair<Int,Int>, Boolean>() }
+    val tempSafeZone = remember { mutableMapOf<Pair<Int, Int>, Boolean>() }
 
     val playerPaths = remember {
         listOf(
@@ -129,9 +186,15 @@ fun LudoBoardWithFourTokens(
         }
     }
 
-    Column(modifier = background.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = background.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-        Canvas(modifier = Modifier.size(ludoBoardSize).clip(RoundedCornerShape(10.dp)).border(2.dp, Color.Gray, RoundedCornerShape(10.dp))) {
+        Canvas(
+            modifier = Modifier.size(ludoBoardSize).clip(RoundedCornerShape(10.dp))
+                .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
+        ) {
             val startX = (size.width - size.minDimension) / 2
             val startY = (size.height - size.minDimension) / 2
 
@@ -173,7 +236,10 @@ fun LudoBoardWithFourTokens(
 
                     val overlappingStateList = collisions.keys.map { (row, col) ->
                         Pair(
-                            Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2),
+                            Offset(
+                                col * boardCellsSize + boardCellsSize / 2,
+                                row * boardCellsSize + boardCellsSize / 2
+                            ),
                             collisions[Pair(row, col)]?.size
                         )
                     }
@@ -199,7 +265,10 @@ fun LudoBoardWithFourTokens(
         Spacer(modifier = Modifier.height(16.dp))
 
         val haptic = LocalHapticFeedback.current
-        FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             for (player in 0 until 4) {
                 for (i in 0 until 4) {
                     Button(onClick = {
