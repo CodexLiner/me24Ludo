@@ -68,7 +68,6 @@ class Me24LudoBoardViewModel : ViewModel() {
         }
     }
 
-    @OptIn(ExperimentalResourceApi::class)
     fun movePlayer(
         currentPlayer: Int, boardCellsSize: Float, offset: Offset
     ) {
