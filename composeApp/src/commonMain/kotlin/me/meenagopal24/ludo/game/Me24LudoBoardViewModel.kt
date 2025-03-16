@@ -20,7 +20,9 @@ import multiplatform_app.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 class Me24LudoBoardViewModel : ViewModel() {
-    val audioPlayer: AudioPlayer = createAudioPlayer()
+    private val audioPlayer: AudioPlayer = createAudioPlayer()
+    @OptIn(ExperimentalResourceApi::class)
+    private var stepUri = Res.getUri("files/step.mp3")
     val currentPlayer = MutableStateFlow(0)
     val currentMove = MutableStateFlow(-1)
     val movementInProgress = MutableStateFlow(false)
@@ -49,14 +51,13 @@ class Me24LudoBoardViewModel : ViewModel() {
         this.playersCount = playersCount
     }
 
-    @OptIn(ExperimentalResourceApi::class)
     fun autoMovePlayer(tokenIndex : Int) {
         viewModelScope.launch {
             isMoving(true)
             val startPos = tokenPositions.value[currentPlayer.value][tokenIndex]
             val endPos = (startPos + currentMove.value.coerceAtMost(playerPaths[currentPlayer.value].size - 1))
             for (pos in startPos..endPos) {
-                audioPlayer.play(Res.getUri("files/step.mp3"))
+                audioPlayer.play(stepUri)
                 tokenPositions.value[currentPlayer.value][tokenIndex] = pos
                 delay(300)
             }
