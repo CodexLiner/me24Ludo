@@ -32,10 +32,15 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -72,6 +77,61 @@ fun String.toColor(): Color {
     val hex = removePrefix("#")
     return Color(hex.toLong(16) or (if (hex.length == 6) 0xFF000000 else 0x00000000))
 }
+
+@Composable
+fun DrawPawn() {
+    Canvas(modifier = Modifier.size(120.dp)) {
+        val width = size.width
+        val height = size.height
+
+        val gradient = Brush.verticalGradient(
+            colors = listOf(Color(0xFF444444), Color(0xFF111111)), // Dark Gray to Black
+            startY = 0f,
+            endY = height
+        )
+
+        val path = Path().apply {
+            // Pawn Head (circle)
+            addOval(Rect(center = Offset(width / 2, height * 0.2f), radius = width * 0.15f))
+
+            // Start from left side of the neck
+            moveTo(width * 0.42f, height * 0.30f)
+
+            // Curve down to form the upper body
+            quadraticTo(
+                width * 0.30f, height * 0.45f,
+                width * 0.32f, height * 0.55f
+            )
+
+            // Curve for left side of the body
+            quadraticTo(
+                width * 0.20f, height * 0.75f,
+                width * 0.40f, height * 0.78f
+            )
+
+            // **Straight bottom line instead of a curve**
+            lineTo(width * 0.60f, height * 0.78f)
+
+            // Curve for right side of the body (mirroring left)
+            quadraticTo(
+                width * 0.80f, height * 0.75f,
+                width * 0.68f, height * 0.55f
+            )
+
+            // Curve up to form the upper body
+            quadraticTo(
+                width * 0.70f, height * 0.45f,
+                width * 0.58f, height * 0.30f
+            )
+            close()
+        }
+
+        // Draw the pawn shape with gradient
+        drawPath(path, brush = gradient)
+    }
+}
+
+
 
 
 @Composable

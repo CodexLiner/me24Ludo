@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import me.meenagopal24.ludo.utils.BOARD_STROKE
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -31,7 +32,7 @@ fun DrawScope.drawSafeAreas(startX: Float, startY: Float, boardCellsSize: Float,
 
             pathColor?.let {
 
-                drawRect(pathColor, Offset(currentX, currentY), Size(boardCellsSize -2f, boardCellsSize -2f))
+                drawRect(pathColor, Offset(currentX, currentY), Size(boardCellsSize -BOARD_STROKE, boardCellsSize -BOARD_STROKE))
 
                 /**
                  * draw star need to understand later
@@ -54,7 +55,7 @@ fun DrawScope.drawSafeAreas(startX: Float, startY: Float, boardCellsSize: Float,
                     }
                     close()
                 }
-                drawPath(starPath, Color.Black, style = Stroke(2f))
+                drawPath(starPath, Color.Black, style = Stroke(BOARD_STROKE))
 
             }
 

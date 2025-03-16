@@ -1,11 +1,13 @@
 package me.meenagopal24.ludo.canvas
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import me.meenagopal24.ludo.Direction
+import me.meenagopal24.ludo.utils.modify
 
 fun DrawScope.drawHomeEntriesArrows(
     startX: Float,
@@ -20,6 +22,7 @@ fun DrawScope.drawHomeEntriesArrows(
     val headPadding = boardCellsSize * 0.2f
 
     fun drawArrow(start: Offset, end: Offset, color: Color, direction: Direction) {
+        val modifiedColor = color.modify()
 
         val arrowStart = when (direction) {
             Direction.UP -> start.copy(y = start.y - shaftPadding)
@@ -35,7 +38,14 @@ fun DrawScope.drawHomeEntriesArrows(
             Direction.RIGHT -> end.copy(x = end.x - headPadding)
         }
 
-        drawLine(color, arrowStart, arrowEnd, strokeWidth = 5f, cap = StrokeCap.Round)
+        // Gradient for arrow shaft
+        val arrowGradient = Brush.linearGradient(
+            colors = listOf(color, modifiedColor),
+            start = arrowStart,
+            end = arrowEnd
+        )
+
+        drawLine(brush = arrowGradient, arrowStart, arrowEnd, strokeWidth = 5f, cap = StrokeCap.Round)
 
         val (arrowEndX, arrowEndY) = end
         val arrowHeadPath = Path().apply {
@@ -60,7 +70,15 @@ fun DrawScope.drawHomeEntriesArrows(
             }
             close()
         }
-        drawPath(arrowHeadPath, color)
+
+        // Gradient for arrowhead
+        val arrowHeadGradient = Brush.linearGradient(
+            colors = listOf(modifiedColor, color),
+            start = Offset(arrowEndX - arrowHeadSize, arrowEndY),
+            end = Offset(arrowEndX + arrowHeadSize, arrowEndY)
+        )
+
+        drawPath(arrowHeadPath, brush = arrowHeadGradient)
     }
 
     val arrowStartX = startX + centerOffset
@@ -91,3 +109,4 @@ fun DrawScope.drawHomeEntriesArrows(
         Direction.LEFT
     )
 }
+
