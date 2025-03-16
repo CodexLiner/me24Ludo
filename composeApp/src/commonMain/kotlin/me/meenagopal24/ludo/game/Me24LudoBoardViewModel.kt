@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import co.touchlab.kermit.Logger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -26,6 +25,7 @@ class Me24LudoBoardViewModel : ViewModel() {
     private val audioPlayer: AudioPlayer = createAudioPlayer()
     private var stepUri = Res.getUri("files/step.mp3")
     private var safeZoneUri = Res.getUri("files/safe.mp3")
+    private var winningZoneUri = Res.getUri("files/panta.mp3")
     val currentPlayer = MutableStateFlow(0)
     val currentMove = MutableStateFlow(-1)
     val movementInProgress = MutableStateFlow(false)
@@ -60,7 +60,11 @@ class Me24LudoBoardViewModel : ViewModel() {
             val startPos = tokenPositions.value[currentPlayer.value][tokenIndex]
             val endPos = (startPos + currentMove.value.coerceAtMost(playerPaths[currentPlayer.value].size - 1))
             for (pos in (startPos + 1)..endPos) {
-                audioPlayer.play(if (pos in safeZoneIndexed) safeZoneUri else stepUri)
+                when (pos) {
+                    in setOf(56) -> audioPlayer.play(winningZoneUri)
+                    in safeZoneIndexed -> audioPlayer.play(if (pos == endPos) safeZoneUri else stepUri)
+                    else -> audioPlayer.play(stepUri)
+                }
                 tokenPositions.value[currentPlayer.value][tokenIndex] = pos
                 delay(300)
             }

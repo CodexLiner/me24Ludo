@@ -3,8 +3,8 @@ package me.meenagopal24.ludo.media
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 
 @SuppressLint("StaticFieldLeak")
 object AndroidAudioPlayerProvider {
@@ -26,22 +26,43 @@ actual fun createAudioPlayer(): AudioPlayer {
 
 
 class AndroidAudioPlayer(private val context: Context) : AudioPlayer {
-    private var player: ExoPlayer? = null
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun play(url: String) {
-        player = ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(url))
-            prepare()
-            play()
+        try {
+            mediaPlayer = MediaPlayer().apply {
+                if (url.startsWith("file:///android_asset/")) {
+                    val assetPath = url.removePrefix("file:///android_asset/")
+                    val assetFileDescriptor = context.assets.openFd(assetPath)
+
+                    setDataSource(
+                        assetFileDescriptor.fileDescriptor,
+                        assetFileDescriptor.startOffset,
+                        assetFileDescriptor.length
+                    )
+                } else setDataSource(url)
+
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                setOnPreparedListener { start() }
+                setOnCompletionListener { stop() }
+                prepareAsync()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     override fun stop() {
-        player?.release()
-        player = null
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 
     override fun isPlaying(): Boolean {
-        return player?.isPlaying == true
+        return mediaPlayer?.isPlaying == true
     }
 }
