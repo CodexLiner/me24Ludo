@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import me.meenagopal24.ludo.canvas.drawPin
+import me.meenagopal24.ludo.media.createAudioPlayer
 import me.meenagopal24.ludo.utils.calculateAlpha
 import me.meenagopal24.ludo.utils.detectOverlaps
 import me.meenagopal24.ludo.utils.getAnimatedActiveState
@@ -49,7 +50,10 @@ import me.meenagopal24.ludo.utils.getHomeOffset
 import me.meenagopal24.ludo.utils.getScreenSize
 import me.meenagopal24.ludo.utils.homeOffsets
 import me.meenagopal24.ludo.utils.ifNotTrue
+import multiplatform_app.composeapp.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun Me24LudoBoard(
     background: Modifier,
@@ -85,6 +89,7 @@ fun Me24LudoBoard(
      */
     LaunchedEffect(Unit) {
         viewModel.setPlayerCount(playersCount)
+        createAudioPlayer().play(Res.getUri("files/gamestartsound.mp3"))
     }
 
     /**

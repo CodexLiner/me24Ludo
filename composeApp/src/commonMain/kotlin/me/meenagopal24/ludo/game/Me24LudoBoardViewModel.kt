@@ -26,6 +26,8 @@ class Me24LudoBoardViewModel : ViewModel() {
     private var stepUri = Res.getUri("files/step.mp3")
     private var safeZoneUri = Res.getUri("files/safe.mp3")
     private var winningZoneUri = Res.getUri("files/panta.mp3")
+    private var deathUri = Res.getUri("files/death.mp3")
+
     val currentPlayer = MutableStateFlow(0)
     val currentMove = MutableStateFlow(-1)
     val movementInProgress = MutableStateFlow(false)
@@ -107,9 +109,21 @@ class Me24LudoBoardViewModel : ViewModel() {
                 val (first, second) = tripletList
                 val (player1, token1, _) = first
                 val (player2, token2, _) = second
+
                 if (player1 != player2) {
-                    tokenPositions.value[if (player1 == currentPlayer.value) player2 else player1][if (player1 == currentPlayer.value) token2 else token1] =
-                        -1
+                    val rowIndex = if (player1 == currentPlayer.value) player2 else player1
+                    val colIndex = if (player1 == currentPlayer.value) token2 else token1
+
+                    val currentValue = tokenPositions.value[rowIndex][colIndex]
+
+                   viewModelScope.launch {
+                       audioPlayer.stop()
+                       audioPlayer.play(deathUri)
+                       for (i in currentValue downTo -1) {
+                           tokenPositions.value[rowIndex][colIndex] = i
+                           delay(2)
+                       }
+                   }
                 }
             }
         }
