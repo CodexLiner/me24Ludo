@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import me.meenagopal24.ludo.media.AudioPlayer
+import me.meenagopal24.ludo.media.createAudioPlayer
 import me.meenagopal24.ludo.move.PlayerMovement
 import me.meenagopal24.ludo.paths.getPlayerFourPath
 import me.meenagopal24.ludo.paths.getPlayerOnePath
@@ -14,9 +16,11 @@ import me.meenagopal24.ludo.paths.getPlayerThreePath
 import me.meenagopal24.ludo.paths.getPlayerTwoPath
 import me.meenagopal24.ludo.utils.nextPlayer
 import me.meenagopal24.ludo.utils.safeZones
+import multiplatform_app.composeapp.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 class Me24LudoBoardViewModel : ViewModel() {
-
+    val audioPlayer: AudioPlayer = createAudioPlayer()
     val currentPlayer = MutableStateFlow(0)
     val currentMove = MutableStateFlow(-1)
     val movementInProgress = MutableStateFlow(false)
@@ -44,12 +48,15 @@ class Me24LudoBoardViewModel : ViewModel() {
     fun setPlayerCount(playersCount: Int) {
         this.playersCount = playersCount
     }
+
+    @OptIn(ExperimentalResourceApi::class)
     fun autoMovePlayer(tokenIndex : Int) {
         viewModelScope.launch {
             isMoving(true)
             val startPos = tokenPositions.value[currentPlayer.value][tokenIndex]
             val endPos = (startPos + currentMove.value.coerceAtMost(playerPaths[currentPlayer.value].size - 1))
             for (pos in startPos..endPos) {
+                audioPlayer.play(Res.getUri("files/step.mp3"))
                 tokenPositions.value[currentPlayer.value][tokenIndex] = pos
                 delay(300)
             }
@@ -60,6 +67,7 @@ class Me24LudoBoardViewModel : ViewModel() {
         }
     }
 
+    @OptIn(ExperimentalResourceApi::class)
     fun movePlayer(
         currentPlayer: Int, boardCellsSize: Float, offset: Offset
     ) {

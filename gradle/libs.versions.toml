@@ -13,6 +13,8 @@ coil = "3.0.4"
 kotlinx-datetime = "0.6.1"
 kstore = "0.9.1"
 composeIcons = "1.1.1"
+media3Exoplayer = "1.5.1"
+startupRuntime = "1.2.0"
 
 [libraries]
 
@@ -40,6 +42,8 @@ coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.re
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kstore = { module = "io.github.xxfast:kstore", version.ref = "kstore" }
 composeIcons-featherIcons = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeIcons" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
+androidx-startup-runtime = { group = "androidx.startup", name = "startup-runtime", version.ref = "startupRuntime" }
 
 [plugins]
 

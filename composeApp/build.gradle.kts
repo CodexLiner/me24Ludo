@@ -58,6 +58,8 @@ kotlin {
         }
 
         androidMain.dependencies {
+            implementation(libs.androidx.startup.runtime)
+            implementation(libs.androidx.media3.exoplayer)
             implementation(compose.uiTooling)
             implementation(libs.androidx.activityCompose)
             implementation(libs.kotlinx.coroutines.android)
