@@ -95,9 +95,9 @@ fun getAnimatedActiveState(): Float {
     val infiniteTransition = rememberInfiniteTransition()
     val alpha by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 0f,
+        targetValue = 0.2f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 500, easing = LinearEasing),
+            animation = tween(durationMillis = 300, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         )
     )
