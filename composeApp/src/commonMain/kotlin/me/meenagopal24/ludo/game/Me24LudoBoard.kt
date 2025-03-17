@@ -161,6 +161,7 @@ fun Me24LudoBoard(
                             overlappingState = overlappingState,
                             tokenOffsets = tokenOffsets,
                             tokenColor = homeColors[player],
+                            isActive = player == currentPlayer && currentMove > 0,
                             tokenAlpha =  if (player == currentPlayer && tokenPositions[currentPlayer][token] != 56) alpha else 1f,
                             tokenPositions = tokenPositions,
                             boardCellsSize = boardCellsSize,
@@ -190,7 +191,8 @@ fun DrawScope.drawLudoTokens(
     tokenPositions: List<SnapshotStateList<Int>>,
     tokenOffsets: List<List<State<Offset>>>,
     overlappingState: MutableList<Pair<Offset, Int?>>,
-    tokenAlpha: Float
+    tokenAlpha: Float,
+    isActive: Boolean
 ) {
     val tokenOffset = if (tokenPositions[player][token] == -1) getHomeOffset(
         boardOffSet.x,
@@ -199,6 +201,7 @@ fun DrawScope.drawLudoTokens(
         boardCellsSize
     )[token] else tokenOffsets[player][token].value
     drawPin(
+        isActive = isActive,
         center = tokenOffset,
         boardCellsSize = boardCellsSize,
         tokenAlpha = tokenAlpha,

@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import me.meenagopal24.ludo.utils.modify
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -17,13 +18,22 @@ fun DrawScope.drawPin(
     color: Color = Color.Blue,
     overlappingState: List<Pair<Offset, Int?>>,
     pinDrawTracker: MutableMap<Offset, Int>,
-    tokenAlpha: Float
+    tokenAlpha: Float,
+    isActive: Boolean
 ) {
-    val pawnHeight = boardCellsSize * 0.9f
-    val pawnWidth = boardCellsSize * 0.68f
-    val headRadius = pawnWidth * 0.30f
 
     val numberOfOverlappingContent = overlappingState.find { it.first == center }?.second ?: 1
+    val scaleFactor = if (isActive.not()) when (numberOfOverlappingContent) {
+        1 -> 0.9f
+        2 -> 0.9f
+        in 3..4 -> 0.4f
+        else -> 0.7f
+    } else 0.9f
+
+    val pawnHeight = boardCellsSize * 0.8f * scaleFactor
+    val pawnWidth = boardCellsSize * 0.6f * scaleFactor
+    val headRadius = pawnWidth * 0.30f
+
     val currentIndex = pinDrawTracker.getOrPut(center) { 0 }
 
     val gridSpacing = boardCellsSize * 0.2f
@@ -35,10 +45,10 @@ fun DrawScope.drawPin(
     )
 
     val adjustedCenter = when (numberOfOverlappingContent) {
-        1 -> center.copy(y = center.y - boardCellsSize / 3f)
+        1 -> center.copy(y = center.y - boardCellsSize / 4f)
         in 3..4 -> {
             val offset = positionOffsets.getOrElse(currentIndex % 4) { Offset.Zero }
-            Offset(center.x + offset.x, center.y - boardCellsSize / 2f + offset.y)
+            Offset(center.x + offset.x, center.y - (boardCellsSize / if (isActive) 3f else 8f) + offset.y)
         }
 
         else -> {
@@ -54,7 +64,7 @@ fun DrawScope.drawPin(
     pinDrawTracker[center] = (currentIndex + 1) % numberOfOverlappingContent
 
     val gradient = Brush.verticalGradient(
-        colors = listOf(color.copy(alpha = 1f), color),
+        colors = listOf(color.copy(alpha = 1f).modify(), color),
         startY = adjustedCenter.y - pawnHeight / 2,
         endY = adjustedCenter.y + pawnHeight / 2
     )
@@ -104,7 +114,7 @@ fun DrawScope.drawPin(
     )
 
     // Draw Border
-    drawPath(path, brush = borderGradient, style = Stroke(width = 5f))
+    drawPath(path, brush = borderGradient, style = Stroke(width = 5f * tokenAlpha * 2))
     drawPath(path, brush = gradient)
 
 }
