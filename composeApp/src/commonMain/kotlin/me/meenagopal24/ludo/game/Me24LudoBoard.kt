@@ -105,7 +105,10 @@ fun Me24LudoBoard(
         val playerTokens = tokenPositions[currentPlayer]
         val availableTokens = playerTokens.filter { it != -1 }
         when {
-            playerTokens.all { it == -1 } && currentMove in 1..5 -> viewModel.setCurrentPlayer((currentPlayer + 1) % playersCount)
+            playerTokens.all { it == -1 } && currentMove in 1..5 -> {
+                viewModel.setCurrentPlayer((currentPlayer + 1) % playersCount)
+                viewModel.resetCurrentMove()
+            }
             availableTokens.size == 1 && currentMove !in listOf(-1, 6) -> viewModel.autoMovePlayer(playerTokens.indexOf(availableTokens.first()))
         }
     }
