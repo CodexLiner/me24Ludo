@@ -49,7 +49,7 @@ class Me24LudoBoardViewModel : ViewModel() {
         currentMove.value = move
     }
 
-    fun isMoving(b: Boolean) {
+    private fun isMoving(b: Boolean) {
         movementInProgress.value = b
     }
     fun setPlayerCount(playersCount: Int) {
@@ -72,6 +72,7 @@ class Me24LudoBoardViewModel : ViewModel() {
             }
 
             isMoving(false)
+            delay(50) // little delay for checking collisions
             setCurrentPlayer(currentPlayer.value.nextPlayer(playersCount, currentMove.value))
             resetCurrentMove()
         }
