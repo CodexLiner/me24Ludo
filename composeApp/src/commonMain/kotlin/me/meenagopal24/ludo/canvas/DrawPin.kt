@@ -93,9 +93,8 @@ fun DrawScope.drawPin(
 
     val borderGradient = Brush.radialGradient(
         colors = listOf(
-            Color.White.copy(alpha = 0.7f),
-            color.copy(alpha = 0.9f),
-            Color.Black.copy(alpha = 0.5f).copy(color.alpha)  // to add blinking
+            Color.White.copy(alpha = 1f),
+            Color.Black.copy(alpha = 1f).copy(color.alpha)  // to add blinking
         ),
         center = adjustedCenter,
         radius = pawnWidth
