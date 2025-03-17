@@ -53,7 +53,7 @@ fun DrawScope.drawPin(
     pinDrawTracker[center] = (currentIndex + 1) % numberOfOverlappingContent
 
     val gradient = Brush.verticalGradient(
-        colors = listOf(color.copy(alpha = 1f), color.copy(alpha = 0.9f)),
+        colors = listOf(color.copy(alpha = 1f), color),
         startY = adjustedCenter.y - pawnHeight / 2,
         endY = adjustedCenter.y + pawnHeight / 2
     )
