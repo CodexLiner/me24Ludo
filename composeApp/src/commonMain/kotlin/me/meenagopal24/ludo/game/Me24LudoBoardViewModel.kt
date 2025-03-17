@@ -38,15 +38,20 @@ class Me24LudoBoardViewModel : ViewModel() {
 
 
     fun setCurrentPlayer(player: Int) {
-        currentPlayer.value = player
+        if (player < playersCount) currentPlayer.value = player else currentPlayer.value = 0
     }
 
     fun resetCurrentMove() {
         currentMove.value = -1
+        setOnDiceRolled(false)
     }
 
     fun updateCurrentMove(move: Int) {
         currentMove.value = move
+    }
+
+    fun setOnDiceRolled(b: Boolean) {
+        onDiceRolled.value = b
     }
 
     private fun isMoving(b: Boolean) {
@@ -89,7 +94,7 @@ class Me24LudoBoardViewModel : ViewModel() {
                 if (currentMove.value == 6 && tokenPositions.value[currentPlayer][index] == -1) {
                     tokenPositions.value[currentPlayer][index] = 0
                     resetCurrentMove()
-                } else setCurrentPlayer(currentPlayer + 1)
+                }
             },
             onMove = { newPosition ->
                 tokenPositions.value[currentPlayer].indexOf(newPosition).takeIf { it >= 0 }

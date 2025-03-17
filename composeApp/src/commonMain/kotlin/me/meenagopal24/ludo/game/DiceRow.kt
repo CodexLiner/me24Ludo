@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +36,7 @@ import io.github.alexzhirkevich.compottie.rememberLottieComposition
 import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import kotlinx.coroutines.launch
 import me.meenagopal24.ludo.media.createAudioPlayer
+import me.meenagopal24.ludo.utils.debounceClickable
 import me.meenagopal24.ludo.utils.getAnimatedBorderColor
 import multiplatform_app.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -48,6 +50,7 @@ fun DiceRow(
     currentPlayer: Int,
     viewModel: Me24LudoBoardViewModel,
 ) {
+    val onDiceRolled by viewModel.onDiceRolled.collectAsState()
     Row(
         modifier = Modifier.fillMaxWidth()
             .padding(horizontal = padding.dp, vertical = (padding / 2).dp),
@@ -56,16 +59,20 @@ fun DiceRow(
         DiceBox(
             homeColors = homeColors,
             player = startIndex,
+            onDiceRolled = onDiceRolled,
             isActive = currentPlayer == startIndex && viewModel.currentMove.value == -1
         ) {
             viewModel.updateCurrentMove(it)
+            viewModel.setOnDiceRolled(true)
         }
         DiceBox(
             player = endIndex,
             homeColors = homeColors,
+            onDiceRolled = onDiceRolled,
             isActive = currentPlayer == endIndex && viewModel.currentMove.value == -1
         ) {
             viewModel.updateCurrentMove(it)
+            viewModel.setOnDiceRolled(true)
         }
     }
 }
@@ -74,7 +81,11 @@ fun DiceRow(
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun DiceBox(
-    player: Int, homeColors: List<Color>, isActive: Boolean = true, onDiceRoll: (Int) -> Unit
+    player: Int,
+    homeColors: List<Color>,
+    isActive: Boolean = true,
+    onDiceRolled: Boolean,
+    onDiceRoll: (Int) -> Unit,
 ) {
     val Images = listOf(
         "https://static.vecteezy.com/system/resources/thumbnails/019/900/306/small_2x/happy-young-cute-illustration-face-profile-png.png",
@@ -85,7 +96,8 @@ fun DiceBox(
     val scope = rememberCoroutineScope()
     var diceNumber by remember { mutableStateOf(0) }
     val audioPlayer = remember { createAudioPlayer() }
-    val diceRollUri = Res.getUri("files/diceroll.mp3")
+    val diceRollUri = Res.getUri("files/diceroll_1.mp3")
+    var isRolling = onDiceRolled
 
     val composition by key(diceNumber) {
         rememberLottieComposition {
@@ -136,21 +148,25 @@ fun DiceBox(
                         color = if (isActive) animatedBorder else Color.Gray,
                         shape = RoundedCornerShape(10.dp)
                     ).then(
-                        if (isActive) Modifier.clickable(
+                        if (isActive) Modifier.debounceClickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }) {
-                            scope.launch {
-                                diceNumber = listOf(1, 2, 6, 3, 4, 5, 6).random()
-                                audioPlayer.stop()
-                                audioPlayer.play(diceRollUri)
-                                animation.animate(
-                                    composition,
-                                    initialProgress = 0f,
-                                    speed = 2f,
-                                    clipSpec = LottieClipSpec.Progress(0f, 0.85f)
-                                )
-                                onDiceRoll(diceNumber)
+                            if (isRolling.not()) {
+                                scope.launch {
+                                    diceNumber = listOf(1, 2, 6, 3, 4, 5, 6).random()
+                                    isRolling = true
+                                    audioPlayer.stop()
+                                    audioPlayer.play(diceRollUri)
+                                    animation.animate(
+                                        composition,
+                                        initialProgress = 0f,
+                                        speed = 2f,
+                                        clipSpec = LottieClipSpec.Progress(0f, 0.85f)
+                                    )
+                                    onDiceRoll(diceNumber)
+                                }
                             }
+
                         } else Modifier.alpha(0.5f)), painter = rememberLottiePainter(
                     forceOffscreenRendering = true,
                     clipTextToBoundingBoxes = false,

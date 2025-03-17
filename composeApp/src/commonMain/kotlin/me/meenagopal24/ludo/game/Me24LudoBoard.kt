@@ -94,12 +94,9 @@ fun Me24LudoBoard(
      * launched effect to set current player
      */
     LaunchedEffect(currentPlayer) {
-        if (tokenPositions[currentPlayer].all { it == 56 }) {
-            viewModel.setCurrentPlayer((currentPlayer + 1) % playersCount)
-        } else {
-            viewModel.setCurrentPlayer(currentPlayer % playersCount)
-            viewModel.resetCurrentMove()
-        }
+        if (tokenPositions[currentPlayer].all { it == 56 }) viewModel.setCurrentPlayer((currentPlayer + 1) % playersCount)
+        else viewModel.setCurrentPlayer(currentPlayer % playersCount)
+        viewModel.resetCurrentMove()
     }
 
     /**
