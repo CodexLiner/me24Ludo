@@ -22,6 +22,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -55,11 +56,15 @@ fun DiceRow(
         DiceBox(
             homeColors = homeColors,
             player = startIndex,
-            isActive = currentPlayer == startIndex
+            isActive = currentPlayer == startIndex && viewModel.currentMove.value == -1
         ) {
             viewModel.updateCurrentMove(it)
         }
-        DiceBox(player = endIndex, homeColors = homeColors, isActive = currentPlayer == endIndex) {
+        DiceBox(
+            player = endIndex,
+            homeColors = homeColors,
+            isActive = currentPlayer == endIndex && viewModel.currentMove.value == -1
+        ) {
             viewModel.updateCurrentMove(it)
         }
     }
@@ -135,7 +140,7 @@ fun DiceBox(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }) {
                             scope.launch {
-                                diceNumber = (1..6).random()
+                                diceNumber = listOf(1,2,3,4,5,6,6,6).random()
                                 audioPlayer.stop()
                                 audioPlayer.play(diceRollUri)
                                 animation.animate(
@@ -146,7 +151,7 @@ fun DiceBox(
                                 )
                                 onDiceRoll(diceNumber)
                             }
-                        } else Modifier), painter = rememberLottiePainter(
+                        } else Modifier.alpha(0.5f)), painter = rememberLottiePainter(
                     forceOffscreenRendering = true,
                     clipTextToBoundingBoxes = false,
                     clipToCompositionBounds = false,
