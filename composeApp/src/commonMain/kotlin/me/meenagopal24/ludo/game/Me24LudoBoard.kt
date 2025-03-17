@@ -164,7 +164,7 @@ fun Me24LudoBoard(
                             overlappingState = overlappingState,
                             tokenOffsets = tokenOffsets,
                             tokenColor = homeColors[player],
-                            tokenAlpha =  if (player == currentPlayer) alpha else 1f,
+                            tokenAlpha =  if (player == currentPlayer && tokenPositions[currentPlayer][token] != 56) alpha else 1f,
                             tokenPositions = tokenPositions,
                             boardCellsSize = boardCellsSize,
                             overlappingOffsets = overlappingOffsets,
