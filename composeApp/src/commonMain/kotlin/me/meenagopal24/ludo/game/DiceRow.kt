@@ -8,7 +8,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,10 +22,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import io.github.alexzhirkevich.compottie.LottieClipSpec
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieAnimatable
@@ -47,11 +47,19 @@ fun DiceRow(
     currentPlayer: Int,
     viewModel: Me24LudoBoardViewModel,
 ) {
-    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = padding.dp , vertical = (padding / 2).dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        DiceBox(homeColors = homeColors ,player = startIndex , isActive = currentPlayer == startIndex) {
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = padding.dp, vertical = (padding / 2).dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        DiceBox(
+            homeColors = homeColors,
+            player = startIndex,
+            isActive = currentPlayer == startIndex
+        ) {
             viewModel.updateCurrentMove(it)
         }
-        DiceBox(player = endIndex, homeColors = homeColors , isActive = currentPlayer == endIndex) {
+        DiceBox(player = endIndex, homeColors = homeColors, isActive = currentPlayer == endIndex) {
             viewModel.updateCurrentMove(it)
         }
     }
@@ -63,6 +71,12 @@ fun DiceRow(
 fun DiceBox(
     player: Int, homeColors: List<Color>, isActive: Boolean = true, onDiceRoll: (Int) -> Unit
 ) {
+    val Images = listOf(
+        "https://static.vecteezy.com/system/resources/thumbnails/019/900/306/small_2x/happy-young-cute-illustration-face-profile-png.png",
+        "https://img.freepik.com/premium-photo/3d-close-up-portrait-smiling-man_175690-201.jpg?semt=ais_hybrid",
+        "https://static.vecteezy.com/system/resources/thumbnails/011/490/381/small_2x/happy-smiling-young-man-avatar-3d-portrait-of-a-man-cartoon-character-people-illustration-isolated-on-white-background-vector.jpg",
+        "https://static.vecteezy.com/system/resources/previews/009/397/835/non_2x/man-avatar-clipart-illustration-free-png.png"
+    )
     val scope = rememberCoroutineScope()
     var diceNumber by remember { mutableStateOf(0) }
     val audioPlayer = remember { createAudioPlayer() }
@@ -77,8 +91,20 @@ fun DiceBox(
     }
 
     val animation = rememberLottieAnimatable()
-
     val animatedBorder = getAnimatedBorderColor()
+
+    var blinkAlpha by remember { mutableStateOf(1f) }
+
+    LaunchedEffect(isActive) {
+        if (isActive) {
+            while (true) {
+                blinkAlpha = 0.6f
+                kotlinx.coroutines.delay(400)
+                blinkAlpha = 1f
+                kotlinx.coroutines.delay(400)
+            }
+        }
+    }
 
     LaunchedEffect(diceNumber) {
         if (diceNumber == 0) {
@@ -86,36 +112,73 @@ fun DiceBox(
         }
     }
 
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        modifier = Modifier.padding(8.dp)
+    ) {
+        if (player == 1 || player == 2) ProfileImage(url = Images[player])
 
+        Box(
+            contentAlignment = Alignment.Center, modifier = Modifier
+        ) {
+            Image(
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .background(Color.Black.copy(0.5f))
+                    .size(70.dp).border(
+                        width = if (isActive) 2.dp else 1.dp,
+                        color = if (isActive) animatedBorder else Color.Gray,
+                        shape = RoundedCornerShape(10.dp)
+                    ).then(
+                        if (isActive) Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) {
+                            scope.launch {
+                                diceNumber = (1..6).random()
+                                audioPlayer.stop()
+                                audioPlayer.play(diceRollUri)
+                                animation.animate(
+                                    composition,
+                                    initialProgress = 0f,
+                                    speed = 2f,
+                                    clipSpec = LottieClipSpec.Progress(0f, 0.85f)
+                                )
+                                onDiceRoll(diceNumber)
+                            }
+                        } else Modifier), painter = rememberLottiePainter(
+                    forceOffscreenRendering = true,
+                    clipTextToBoundingBoxes = false,
+                    clipToCompositionBounds = false,
+                    composition = composition,
+                    progress = { animation.progress },
+                ), contentDescription = "Lottie dice animation"
+            )
+        }
+
+        if (player == 0 || player == 3) ProfileImage(url = Images[player])
+    }
+}
+
+
+@Composable
+fun ProfileImage(
+    url: String = "https://images.pexels.com/photos/29821200/pexels-photo-29821200/free-photo-of-silhouette-of-man-against-a-pink-sky-at-sunset.jpeg",
+    modifier: Modifier = Modifier
+) {
     Box(
-        modifier = Modifier.size(70.dp).background(
-            brush = Brush.verticalGradient(
-                colors = listOf(homeColors[player], homeColors[player].copy(0.8f))
-            ), shape = RoundedCornerShape(10.dp)
-        ).border(
-            width = 1.dp,
-            color = if (isActive) animatedBorder else Color.Gray,
-            shape = RoundedCornerShape(10.dp)
-        ).graphicsLayer { alpha = if (isActive) 1f else 0.5f },
+        modifier = modifier
+            .size(50.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.Gray.copy(alpha = 0.3f)) // Background color
+            .border(1.dp, Color.White, RoundedCornerShape(10.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            modifier = Modifier.fillMaxSize().then(
-                if (isActive) Modifier.clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }) {
-                    scope.launch {
-                        diceNumber = (1..6).random()
-                        audioPlayer.stop()
-                        audioPlayer.play(diceRollUri)
-                        animation.animate(composition, initialProgress = 0f , speed = 2f , clipSpec = LottieClipSpec.Progress(0f, 0.85f))
-                        onDiceRoll(diceNumber)
-                    }
-                } else Modifier), painter = rememberLottiePainter(
-                forceOffscreenRendering = true,
-                composition = composition,
-                progress = { animation.progress },
-            ), contentDescription = "Lottie dice animation"
+        AsyncImage(
+            model = url,
+            contentScale = ContentScale.Crop,
+            contentDescription = "",
+            modifier = Modifier.matchParentSize()
         )
     }
 }
