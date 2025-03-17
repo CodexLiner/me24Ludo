@@ -134,10 +134,10 @@ fun Me24LudoBoard(
                 detectOverlaps(tokenPositions) { collisions ->
                     movementInProgress.ifNotTrue {
                         viewModel.handleCollisions(collisions)
-                        overlappingState = collisions.keys.map { (row, col) ->
-                            Pair(Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2), collisions[Pair(row, col)]?.size)
-                        }.toMutableStateList()
                     }
+                    overlappingState = collisions.keys.map { (row, col) ->
+                        Pair(Offset(col * boardCellsSize + boardCellsSize / 2, row * boardCellsSize + boardCellsSize / 2), collisions[Pair(row, col)]?.size)
+                    }.toMutableStateList()
                 }
 
                 /**
