@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -33,13 +34,12 @@ fun DrawScope.drawPin(
     )
 
     val adjustedCenter = when (numberOfOverlappingContent) {
-        1 -> {
-            center.copy(y = center.y - boardCellsSize / 3f)
-        }
+        1 -> center.copy(y = center.y - boardCellsSize / 3f)
         in 3..4 -> {
             val offset = positionOffsets.getOrElse(currentIndex % 4) { Offset.Zero }
             Offset(center.x + offset.x, center.y - boardCellsSize / 2f + offset.y)
         }
+
         else -> {
             val maxOffset = boardCellsSize * 0.15f
             val angle = (currentIndex * (360f / numberOfOverlappingContent)) * (PI / 180).toFloat()
@@ -53,29 +53,31 @@ fun DrawScope.drawPin(
     pinDrawTracker[center] = (currentIndex + 1) % numberOfOverlappingContent
 
     val gradient = Brush.verticalGradient(
-        colors = listOf(Color.Black.copy(alpha =1f), Color.Black.copy(alpha = 0.9f)),
+        colors = listOf(color.copy(alpha = 1f), color.copy(alpha = 0.9f)),
         startY = adjustedCenter.y - pawnHeight / 2,
         endY = adjustedCenter.y + pawnHeight / 2
     )
 
     val path = Path().apply {
-        // Head
-        addOval(Rect(center = Offset(adjustedCenter.x, adjustedCenter.y - pawnHeight * 0.35f), radius = headRadius))
+        addOval(
+            Rect(
+                center = Offset(adjustedCenter.x, adjustedCenter.y - pawnHeight * 0.35f),
+                radius = headRadius
+            )
+        )
 
-        moveTo(adjustedCenter.x - pawnWidth * 0.18f, adjustedCenter.y - pawnHeight * 0.2f) // Neck still slim
+        moveTo(adjustedCenter.x - pawnWidth * 0.18f, adjustedCenter.y - pawnHeight * 0.2f)
 
-        // Left curve - smoother and less curved
         quadraticTo(
             adjustedCenter.x - pawnWidth * 0.25f, adjustedCenter.y - pawnHeight * 0.05f,
             adjustedCenter.x - pawnWidth * 0.40f, adjustedCenter.y + pawnHeight * 0.3f
         )
 
         quadraticTo(
-            adjustedCenter.x - pawnWidth * 0.52f, adjustedCenter.y + pawnHeight * 0.55f,  // Wider base
-            adjustedCenter.x, adjustedCenter.y + pawnHeight * 0.65f  // Base remains rounded
+            adjustedCenter.x - pawnWidth * 0.52f, adjustedCenter.y + pawnHeight * 0.55f,
+            adjustedCenter.x, adjustedCenter.y + pawnHeight * 0.65f
         )
 
-        // Right curve - mirroring left
         quadraticTo(
             adjustedCenter.x + pawnWidth * 0.52f, adjustedCenter.y + pawnHeight * 0.55f,
             adjustedCenter.x + pawnWidth * 0.40f, adjustedCenter.y + pawnHeight * 0.3f
@@ -89,6 +91,19 @@ fun DrawScope.drawPin(
         close()
     }
 
+    val borderGradient = Brush.radialGradient(
+        colors = listOf(
+            Color.White.copy(alpha = 0.7f),
+            color.copy(alpha = 0.9f),
+            Color.Black.copy(alpha = 0.5f).copy(color.alpha)  // to add blinking
+        ),
+        center = adjustedCenter,
+        radius = pawnWidth
+    )
+
+    // Draw Border
+    drawPath(path, brush = borderGradient, style = Stroke(width = 5f))
     drawPath(path, brush = gradient)
+
 }
 
