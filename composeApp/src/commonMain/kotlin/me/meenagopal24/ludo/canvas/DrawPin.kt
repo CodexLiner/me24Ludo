@@ -63,12 +63,26 @@ fun DrawScope.drawPin(
 
     pinDrawTracker[center] = (currentIndex + 1) % numberOfOverlappingContent
 
-    val gradient = Brush.verticalGradient(
-        colors = listOf(color.copy(alpha = 1f).modify(), color),
-        startY = adjustedCenter.y - pawnHeight / 2,
-        endY = adjustedCenter.y + pawnHeight / 2
+
+    val lightReflection = Brush.radialGradient(
+        colors = listOf(Color.White.copy(alpha = 0.5f), Color.Transparent),
+        center = Offset(adjustedCenter.x, adjustedCenter.y - pawnHeight * 0.3f),
+        radius = pawnWidth * 0.8f
     )
 
+    val shadowGradient = Brush.radialGradient(
+        colors = listOf(Color.Black.copy(alpha = 0.2f), Color.Transparent),
+        center = adjustedCenter.copy(y = adjustedCenter.y + pawnHeight / 2),
+        radius = pawnWidth
+    )
+
+    val borderGradient = Brush.radialGradient(
+        colors = listOf(color.modify(), Color.Black.copy(alpha = tokenAlpha)),
+        center = adjustedCenter,
+        radius = pawnWidth
+    )
+
+    // Pawn shape
     val path = Path().apply {
         addOval(
             Rect(
@@ -78,6 +92,10 @@ fun DrawScope.drawPin(
         )
 
         moveTo(adjustedCenter.x - pawnWidth * 0.18f, adjustedCenter.y - pawnHeight * 0.2f)
+        quadraticTo(
+            adjustedCenter.x - pawnWidth * 0.25f, adjustedCenter.y - pawnHeight * 0.05f,
+            adjustedCenter.x - pawnWidth * 0.40f, adjustedCenter.y + pawnHeight * 0.3f
+        )
 
         quadraticTo(
             adjustedCenter.x - pawnWidth * 0.25f, adjustedCenter.y - pawnHeight * 0.05f,
@@ -104,18 +122,31 @@ fun DrawScope.drawPin(
         close()
     }
 
-    val borderGradient = Brush.radialGradient(
+    val gradient = Brush.horizontalGradient(
         colors = listOf(
-            Color.Gray.copy(alpha = 1f),
-            Color.Black.copy(alpha = tokenAlpha)  // to add blinking
-        ),
-        center = adjustedCenter,
-        radius = pawnWidth
+            color.copy(alpha = 1f).modify(),
+            color.copy(alpha = 0.8f),
+            color.copy(alpha = 1f).modify()
+        ), startX = adjustedCenter.x - pawnWidth / 2, endX = adjustedCenter.x + pawnWidth / 2
     )
 
-    // Draw Border
+    val sideHighlight = Brush.linearGradient(
+        colors = listOf(Color.White.copy(alpha = 0.4f), Color.Transparent),
+        start = Offset(adjustedCenter.x - pawnWidth * 0.4f, adjustedCenter.y),
+        end = Offset(adjustedCenter.x - pawnWidth * 0.2f, adjustedCenter.y)
+    )
+
+    val sideShadow = Brush.linearGradient(
+        colors = listOf(Color.White.copy(alpha = 0.3f), Color.Transparent),
+        start = Offset(adjustedCenter.x + pawnWidth * 0.2f, adjustedCenter.y),
+        end = Offset(adjustedCenter.x + pawnWidth, adjustedCenter.y)
+    )
+
     drawPath(path, brush = borderGradient, style = Stroke(width = 5f * tokenAlpha * 1.5f))
     drawPath(path, brush = gradient)
-
+    drawPath(path, brush = shadowGradient)
+    drawPath(path, brush = sideHighlight)
+    drawPath(path, brush = sideShadow)
+    drawPath(path, brush = lightReflection)
 }
 
