@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -124,7 +122,8 @@ fun Me24LudoBoard(
         }
         DicedBoard(padding , homeColors , currentPlayer , viewModel) {
             drawLudoBoard(
-                modifier = modifier.width(screenSize.width.dp).aspectRatio(1f).clip(RoundedCornerShape(10.dp)).border(1.dp, getAnimatedBorderColor(), RoundedCornerShape(10.dp)),
+                modifier = modifier.clip(RoundedCornerShape(10.dp)).border(1.5.dp, getAnimatedBorderColor(), RoundedCornerShape(10.dp)),
+                width = screenSize.width,
                 homeColors = homeColors,
                 boardCellsSize = boardCellsSize,
             ) { startX, startY ->
