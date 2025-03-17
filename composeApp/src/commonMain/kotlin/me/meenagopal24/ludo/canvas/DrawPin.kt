@@ -114,7 +114,7 @@ fun DrawScope.drawPin(
     )
 
     // Draw Border
-    drawPath(path, brush = borderGradient, style = Stroke(width = 5f * tokenAlpha * 2))
+    drawPath(path, brush = borderGradient, style = Stroke(width = 5f * tokenAlpha * 1.5f))
     drawPath(path, brush = gradient)
 
 }
