@@ -1,5 +1,7 @@
 [versions]
 
+coilCompose = "3.1.0"
+compottie = "2.0.0-rc04"
 kotlin = "2.1.0"
 compose = "1.7.3"
 agp = "8.6.1"
@@ -13,6 +15,7 @@ coil = "3.0.4"
 kotlinx-datetime = "0.6.1"
 kstore = "0.9.1"
 composeIcons = "1.1.1"
+lifecycleViewmodelCompose = "2.8.2"
 media3Exoplayer = "1.5.1"
 startupRuntime = "1.2.0"
 
@@ -21,6 +24,8 @@ startupRuntime = "1.2.0"
 androidx-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-uitest-testManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidx-uiTest" }
 androidx-uitest-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "androidx-uiTest" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
@@ -44,6 +49,7 @@ kstore = { module = "io.github.xxfast:kstore", version.ref = "kstore" }
 composeIcons-featherIcons = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeIcons" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
 androidx-startup-runtime = { group = "androidx.startup", name = "startup-runtime", version.ref = "startupRuntime" }
+lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 
 [plugins]
 
