@@ -140,7 +140,7 @@ fun DiceBox(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }) {
                             scope.launch {
-                                diceNumber = listOf(1,2,3,4,5,6,6,6).random()
+                                diceNumber = listOf(1, 2, 6, 3, 4, 5, 6).random()
                                 audioPlayer.stop()
                                 audioPlayer.play(diceRollUri)
                                 animation.animate(
@@ -175,7 +175,7 @@ fun ProfileImage(
         modifier = modifier
             .size(50.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(Color.Gray.copy(alpha = 0.3f)) // Background color
+            .background(Color.White)
             .border(1.dp, Color.White, RoundedCornerShape(10.dp)),
         contentAlignment = Alignment.Center
     ) {
