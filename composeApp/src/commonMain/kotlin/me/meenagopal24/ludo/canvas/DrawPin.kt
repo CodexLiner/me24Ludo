@@ -95,7 +95,7 @@ fun DrawScope.drawPin(
 
     val borderGradient = Brush.radialGradient(
         colors = listOf(
-            Color.White.copy(alpha = 1f),
+            Color.Gray.copy(alpha = 1f),
             Color.Black.copy(alpha = 1f).copy(color.alpha)  // to add blinking
         ),
         center = adjustedCenter,
