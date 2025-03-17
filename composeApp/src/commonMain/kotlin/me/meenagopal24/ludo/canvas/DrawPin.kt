@@ -75,8 +75,10 @@ fun DrawScope.drawPin(
 
         quadraticTo(
             adjustedCenter.x - pawnWidth * 0.52f, adjustedCenter.y + pawnHeight * 0.55f,
-            adjustedCenter.x, adjustedCenter.y + pawnHeight * 0.65f
+            adjustedCenter.x - pawnWidth * 0.40f, adjustedCenter.y + pawnHeight * 0.65f
         )
+
+        lineTo(adjustedCenter.x + pawnWidth * 0.40f, adjustedCenter.y + pawnHeight * 0.65f)
 
         quadraticTo(
             adjustedCenter.x + pawnWidth * 0.52f, adjustedCenter.y + pawnHeight * 0.55f,
