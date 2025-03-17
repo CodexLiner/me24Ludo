@@ -94,8 +94,12 @@ fun Me24LudoBoard(
      * launched effect to set current player
      */
     LaunchedEffect(currentPlayer) {
-        viewModel.setCurrentPlayer(currentPlayer % playersCount)
-        viewModel.resetCurrentMove()
+        if (tokenPositions[currentPlayer].all { it == 56 }) {
+            viewModel.setCurrentPlayer((currentPlayer + 1) % playersCount)
+        } else {
+            viewModel.setCurrentPlayer(currentPlayer % playersCount)
+            viewModel.resetCurrentMove()
+        }
     }
 
     /**
@@ -159,7 +163,8 @@ fun Me24LudoBoard(
                             token = token,
                             overlappingState = overlappingState,
                             tokenOffsets = tokenOffsets,
-                            tokenColor = homeColors[player].copy(alpha = if (player == currentPlayer) alpha else 1f),
+                            tokenColor = homeColors[player],
+                            tokenAlpha =  if (player == currentPlayer) alpha else 1f,
                             tokenPositions = tokenPositions,
                             boardCellsSize = boardCellsSize,
                             overlappingOffsets = overlappingOffsets,
@@ -187,7 +192,8 @@ fun DrawScope.drawLudoTokens(
     overlappingOffsets: MutableMap<Offset, Int>,
     tokenPositions: List<SnapshotStateList<Int>>,
     tokenOffsets: List<List<State<Offset>>>,
-    overlappingState: MutableList<Pair<Offset, Int?>>
+    overlappingState: MutableList<Pair<Offset, Int?>>,
+    tokenAlpha: Float
 ) {
     val tokenOffset = if (tokenPositions[player][token] == -1) getHomeOffset(
         boardOffSet.x,
@@ -198,6 +204,7 @@ fun DrawScope.drawLudoTokens(
     drawPin(
         center = tokenOffset,
         boardCellsSize = boardCellsSize,
+        tokenAlpha = tokenAlpha,
         color = tokenColor,
         overlappingState = overlappingState,
         pinDrawTracker = overlappingOffsets

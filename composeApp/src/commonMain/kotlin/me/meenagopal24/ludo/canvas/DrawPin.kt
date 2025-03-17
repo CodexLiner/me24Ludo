@@ -16,7 +16,8 @@ fun DrawScope.drawPin(
     boardCellsSize: Float,
     color: Color = Color.Blue,
     overlappingState: List<Pair<Offset, Int?>>,
-    pinDrawTracker: MutableMap<Offset, Int>
+    pinDrawTracker: MutableMap<Offset, Int>,
+    tokenAlpha: Float
 ) {
     val pawnHeight = boardCellsSize * 0.9f
     val pawnWidth = boardCellsSize * 0.68f
@@ -96,7 +97,7 @@ fun DrawScope.drawPin(
     val borderGradient = Brush.radialGradient(
         colors = listOf(
             Color.Gray.copy(alpha = 1f),
-            Color.Black.copy(alpha = 1f).copy(color.alpha)  // to add blinking
+            Color.Black.copy(alpha = tokenAlpha)  // to add blinking
         ),
         center = adjustedCenter,
         radius = pawnWidth
