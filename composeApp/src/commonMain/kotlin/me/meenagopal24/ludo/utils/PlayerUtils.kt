@@ -160,19 +160,7 @@ fun detectOverlaps(
     }
 
     // Filter only positions where collisions occur
-    val collisions = positionMap.filter { it.value.size > 1 }.toMutableMap()
-
-    if (collisions.isNotEmpty()) {
-        onCollision(collisions)
-    }
-
-//    // Debugging logs for each collision
-//    for ((position, tokens) in collisions) {
-//        val collisionDetails = tokens.joinToString { (player, token, posIndex) ->
-//            "[Player: $player, Token: $token, BoardPosIndex: $posIndex]"
-//        }
-//        Logger.d("Collision detected at $position involving: $collisionDetails")
-//    }
+    onCollision(positionMap.filter { it.value.size > 1 }.toMutableMap())
 }
 
 
