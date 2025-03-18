@@ -48,6 +48,9 @@ import me.meenagopal24.ludo.utils.getHomeOffset
 import me.meenagopal24.ludo.utils.getScreenSize
 import me.meenagopal24.ludo.utils.homeOffsets
 import me.meenagopal24.ludo.utils.ifNotTrue
+import me.meenagopal24.ludo.utils.nextPlayer
+import me.meenagopal24.ludo.utils.playerOrders
+import me.meenagopal24.ludo.utils.repeatMirroredOrder
 import multiplatform_app.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
@@ -56,8 +59,8 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 fun Me24LudoBoard(
     background: Modifier,
     homeColors: List<Color>,
-    padding: Float = 10f,
-    playersCount: Int = 4,
+    padding: Float = 15f,
+    players: Int = 3,
 ) {
 
     val viewModel : Me24LudoBoardViewModel = viewModel()
@@ -65,9 +68,10 @@ fun Me24LudoBoard(
     val currentMove by viewModel.currentMove.collectAsState()
     val movementInProgress by viewModel.movementInProgress.collectAsState()
     val tokenPositions by viewModel.tokenPositions.collectAsState()
+    val playersCount by viewModel.playersCount.collectAsState()
 
 
-    val screenSize = remember { getScreenSize().apply { width -= padding } }
+    val screenSize =  with(LocalDensity.current) { remember { getScreenSize().apply { width -= padding.dp.toPx() } } }
     val boardCellsSize = with(LocalDensity.current) { (screenSize.width.dp / 15).toPx() }
     val colorAlphaState = getAnimatedActiveState()
 
@@ -86,16 +90,22 @@ fun Me24LudoBoard(
      * launched effect to set player count
      */
     LaunchedEffect(Unit) {
-        viewModel.setPlayerCount(playersCount)
+        viewModel.setPlayerCount(players)
         createAudioPlayer().play(Res.getUri("files/gamestartsound.mp3"))
+    }
+
+    /**
+     * update player when player count changes
+     */
+    LaunchedEffect(playersCount) {
+        viewModel.setCurrentPlayer(playersCount.playerOrders().first())
     }
 
     /**
      * launched effect to set current player
      */
     LaunchedEffect(currentPlayer) {
-        if (tokenPositions[currentPlayer].all { it == 56 }) viewModel.setCurrentPlayer((currentPlayer + 1) % playersCount)
-        else viewModel.setCurrentPlayer(currentPlayer % playersCount)
+        if (tokenPositions[currentPlayer].all { it == 56 }) viewModel.setCurrentPlayer(currentPlayer.nextPlayer(playersCount))
         viewModel.resetCurrentMove()
     }
 
@@ -107,7 +117,7 @@ fun Me24LudoBoard(
         val availableTokens = playerTokens.filter { it != -1 }
         when {
             playerTokens.all { it == -1 } && currentMove in 1..5 -> {
-                viewModel.setCurrentPlayer((currentPlayer + 1) % playersCount)
+                viewModel.setCurrentPlayer(currentPlayer.nextPlayer(playersCount))
                 viewModel.resetCurrentMove()
             }
             availableTokens.size == 1 && currentMove !in listOf(-1, 6) -> viewModel.autoMovePlayer(playerTokens.indexOf(availableTokens.first()))
@@ -126,7 +136,7 @@ fun Me24LudoBoard(
         }
         DicedBoard(padding , homeColors , currentPlayer , viewModel) {
             drawLudoBoard(
-                modifier = modifier.clip(RoundedCornerShape(10.dp)).border(1.5.dp, getAnimatedBorderColor(), RoundedCornerShape(10.dp)),
+                modifier = modifier.clip(RoundedCornerShape(10.dp)).border(5.dp, getAnimatedBorderColor(), RoundedCornerShape(10.dp)),
                 width = screenSize.width,
                 homeColors = homeColors,
                 boardCellsSize = boardCellsSize,
@@ -144,7 +154,7 @@ fun Me24LudoBoard(
                 /**
                  * draw players and their tokens
                  */
-                repeat(playersCount) { player ->
+                repeatMirroredOrder(playersCount) { player ->
                     repeat(4) { token ->
                         val alpha = calculateAlpha(
                             player = player,
@@ -213,7 +223,7 @@ fun DrawScope.drawLudoTokens(
 
 @Composable
 private fun DicedBoard(padding: Float, homeColors: List<Color>, currentPlayer : Int, viewModel: Me24LudoBoardViewModel,  content: @Composable ColumnScope.() -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth() , horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier.fillMaxWidth() , horizontalAlignment = Alignment.CenterHorizontally , verticalArrangement = Arrangement.spacedBy(10.dp)) {
         DiceRow(padding = padding, homeColors = homeColors, currentPlayer = currentPlayer, viewModel = viewModel,)
         content()
         DiceRow(3 , endIndex = 2, padding = padding, homeColors = homeColors, currentPlayer = currentPlayer, viewModel = viewModel)
@@ -229,6 +239,7 @@ fun DebugControls(viewModel: Me24LudoBoardViewModel) {
 
     var expanded by remember { mutableStateOf(false) }
     val currentPlayer by viewModel.currentPlayer.collectAsState()
+    val playersCount by viewModel.playersCount.collectAsState()
 
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -253,7 +264,7 @@ fun DebugControls(viewModel: Me24LudoBoardViewModel) {
             DropdownMenu(expanded, onDismissRequest = {
                 expanded = false
             }) {
-                repeat(4) {
+                repeatMirroredOrder(playersCount = playersCount) {
                     DropdownMenuItem(onClick = {
                         viewModel.setCurrentPlayer(it)
                         expanded = false

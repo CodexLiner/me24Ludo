@@ -21,15 +21,20 @@ fun Boolean?.ifNotTrue(default: () -> Unit): Boolean? {
     return this
 }
 
-fun Int?.nextPlayer(playersCount: Int, currentMove: Int): Int {
-    if (currentMove == 6) {
-        return this ?: 0
-    }
-    if ((this ?: 0) < playersCount - 1) {
-        return (this ?: 0) + 1
-    }
-    return 0
+fun Int.playerOrders() = when (this) {
+    2 -> listOf(1, 3)
+    3 -> listOf(3, 2, 1)
+    else -> (this - 1 downTo 0).toList()
 }
+
+fun Int?.nextPlayer(playersCount: Int, currentMove: Int = Int.MAX_VALUE): Int {
+    val order = playersCount.playerOrders()
+    val currentPlayer = this ?: order.first()
+    if (currentMove == 6 || currentMove == Int.MIN_VALUE) return currentPlayer
+    val nextIndex = (order.indexOf(currentPlayer) + 1) % order.size
+    return order[nextIndex]
+}
+
 
 fun Color.modify(): Color {
     return this.copy(
@@ -84,4 +89,9 @@ inline fun Modifier.debounceClickable(
             onClick()
         }
     }
+}
+
+inline fun repeatMirroredOrder(playersCount: Int, action: (Int) -> Unit) {
+    val order = playersCount.playerOrders()
+    order.forEach(action)
 }

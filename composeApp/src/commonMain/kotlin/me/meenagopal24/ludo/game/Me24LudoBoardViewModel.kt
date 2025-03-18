@@ -15,6 +15,7 @@ import me.meenagopal24.ludo.paths.getPlayerOnePath
 import me.meenagopal24.ludo.paths.getPlayerThreePath
 import me.meenagopal24.ludo.paths.getPlayerTwoPath
 import me.meenagopal24.ludo.utils.nextPlayer
+import me.meenagopal24.ludo.utils.playerOrders
 import me.meenagopal24.ludo.utils.safeZoneIndexed
 import me.meenagopal24.ludo.utils.safeZones
 import multiplatform_app.composeapp.generated.resources.Res
@@ -31,18 +32,19 @@ class Me24LudoBoardViewModel : ViewModel() {
     val currentPlayer = MutableStateFlow(0)
     val currentMove = MutableStateFlow(-1)
     val movementInProgress = MutableStateFlow(false)
-    private var playersCount = 4
+    val onDiceRolled = MutableStateFlow(false)
+    var playersCount = MutableStateFlow(4)
 
     val tokenPositions = MutableStateFlow(List(4) { mutableStateListOf(-1, -1, -1, -1) })
     val playerPaths =  listOf(getPlayerOnePath(), getPlayerTwoPath(), getPlayerThreePath(), getPlayerFourPath())
 
 
     fun setCurrentPlayer(player: Int) {
-        if (player < playersCount) currentPlayer.value = player else currentPlayer.value = 0
+        currentPlayer.value = player
     }
 
-    fun resetCurrentMove() {
-        currentMove.value = -1
+    fun resetCurrentMove(value : Int = -1) {
+        currentMove.value = value
         setOnDiceRolled(false)
     }
 
@@ -58,7 +60,8 @@ class Me24LudoBoardViewModel : ViewModel() {
         movementInProgress.value = b
     }
     fun setPlayerCount(playersCount: Int) {
-        this.playersCount = playersCount
+        this.playersCount.value = playersCount
+        currentPlayer.value = playersCount.playerOrders().first()
     }
 
     fun autoMovePlayer(tokenIndex : Int) {
@@ -78,7 +81,7 @@ class Me24LudoBoardViewModel : ViewModel() {
 
             isMoving(false)
             delay(50) // little delay for checking collisions
-            setCurrentPlayer(currentPlayer.value.nextPlayer(playersCount, currentMove.value))
+            setCurrentPlayer(currentPlayer.value.nextPlayer(playersCount.value, currentMove.value))
             resetCurrentMove()
         }
     }
@@ -125,6 +128,9 @@ class Me24LudoBoardViewModel : ViewModel() {
                    viewModelScope.launch {
                        audioPlayer.stop()
                        audioPlayer.play(deathUri)
+                       /**
+                        * to keep current player still on game
+                        */
                        for (i in currentValue downTo -1) {
                            tokenPositions.value[rowIndex][colIndex] = i
                            delay(2)
