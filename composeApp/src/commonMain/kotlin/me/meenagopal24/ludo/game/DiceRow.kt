@@ -60,7 +60,7 @@ fun DiceRow(
             homeColors = homeColors,
             player = startIndex,
             onDiceRolled = onDiceRolled,
-            isActive = currentPlayer == startIndex && viewModel.currentMove.value == -1
+            isActive = currentPlayer == startIndex
         ) {
             viewModel.updateCurrentMove(it)
             viewModel.setOnDiceRolled(true)
@@ -69,7 +69,7 @@ fun DiceRow(
             player = endIndex,
             homeColors = homeColors,
             onDiceRolled = onDiceRolled,
-            isActive = currentPlayer == endIndex && viewModel.currentMove.value == -1
+            isActive = currentPlayer == endIndex
         ) {
             viewModel.updateCurrentMove(it)
             viewModel.setOnDiceRolled(true)
