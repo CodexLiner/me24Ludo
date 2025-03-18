@@ -60,7 +60,7 @@ fun Me24LudoBoard(
     background: Modifier,
     homeColors: List<Color>,
     padding: Float = 15f,
-    players: Int = 3,
+    players: Int = 4,
 ) {
 
     val viewModel : Me24LudoBoardViewModel = viewModel()

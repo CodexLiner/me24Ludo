@@ -34,6 +34,7 @@ class Me24LudoBoardViewModel : ViewModel() {
     val movementInProgress = MutableStateFlow(false)
     val onDiceRolled = MutableStateFlow(false)
     var playersCount = MutableStateFlow(4)
+    private val tempSafeZones = MutableStateFlow<MutableSet<Pair<Int, Int>>>(mutableSetOf())
 
     val tokenPositions = MutableStateFlow(List(4) { mutableStateListOf(-1, -1, -1, -1) })
     val playerPaths =  listOf(getPlayerOnePath(), getPlayerTwoPath(), getPlayerThreePath(), getPlayerFourPath())
@@ -109,12 +110,20 @@ class Me24LudoBoardViewModel : ViewModel() {
     }
 
     fun handleCollisions(collisions: MutableMap<Pair<Int, Int>, MutableList<Triple<Int, Int, Int>>>) {
+        Logger.d("CollisionAre : $collisions and safe ${tempSafeZones.value}")
+
+        /**
+         * clear temp safe zones
+         */
+        if (collisions.isEmpty()) tempSafeZones.value = mutableSetOf()
+        tempSafeZones.value = tempSafeZones.value.filter { pair -> pair in collisions.keys }.toMutableSet()
+
+        /**
+         * handle collision zones
+         */
         collisions.forEach { (position, tripletList) ->
-            val (row, col) = position
-
-            if (Pair(col, row) in safeZones) return@forEach
-
-            if (tripletList.size == 2) {
+            if (position in safeZones) return@forEach
+            if (tripletList.size == 2 && tempSafeZones.value.contains(position).not()) {
                 val (first, second) = tripletList
                 val (player1, token1, _) = first
                 val (player2, token2, _) = second
@@ -137,6 +146,8 @@ class Me24LudoBoardViewModel : ViewModel() {
                        }
                    }
                 }
+            } else if (tripletList.size > 2) {
+                tempSafeZones.value.add(position)
             }
         }
     }
