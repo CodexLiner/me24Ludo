@@ -131,7 +131,9 @@ fun Me24LudoBoard(
     ) {
         val modifier = Modifier.pointerInput(Unit) {
             detectTapGestures { offset ->
-                viewModel.movePlayer(currentPlayer , boardCellsSize , offset)
+                movementInProgress.ifNotTrue {
+                    viewModel.movePlayer(currentPlayer , boardCellsSize , offset)
+                }
             }
         }
         DicedBoard(padding , homeColors , currentPlayer , viewModel) {
