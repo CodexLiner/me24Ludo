@@ -133,18 +133,20 @@ class Me24LudoBoardViewModel : ViewModel() {
                     val colIndex = if (player1 == currentPlayer.value) token2 else token1
 
                     val currentValue = tokenPositions.value[rowIndex][colIndex]
+                    isMoving(true)
+                    viewModelScope.launch {
+                        audioPlayer.stop()
+                        audioPlayer.play(deathUri)
+                        /**
+                         * to keep current player still on game
+                         */
+                        for (i in currentValue downTo -1) {
+                            tokenPositions.value[rowIndex][colIndex] = i
+                            delay(2)
+                        }
+                        isMoving(false)
 
-                   viewModelScope.launch {
-                       audioPlayer.stop()
-                       audioPlayer.play(deathUri)
-                       /**
-                        * to keep current player still on game
-                        */
-                       for (i in currentValue downTo -1) {
-                           tokenPositions.value[rowIndex][colIndex] = i
-                           delay(2)
-                       }
-                   }
+                    }
                 }
             } else if (tripletList.size > 2) {
                 tempSafeZones.value.add(position)
