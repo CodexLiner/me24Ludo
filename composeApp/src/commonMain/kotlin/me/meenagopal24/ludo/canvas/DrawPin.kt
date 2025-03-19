@@ -124,9 +124,9 @@ fun DrawScope.drawPin(
 
     val gradient = Brush.horizontalGradient(
         colors = listOf(
-            color.copy(alpha = 1f).modify(),
-            color.copy(alpha = 0.8f),
-            color.copy(alpha = 1f).modify()
+            color.modify(),
+            color,
+            color.modify()
         ), startX = adjustedCenter.x - pawnWidth / 2, endX = adjustedCenter.x + pawnWidth / 2
     )
 
