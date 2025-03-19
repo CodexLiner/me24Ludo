@@ -69,7 +69,7 @@ class Me24LudoBoardViewModel : ViewModel() {
         viewModelScope.launch {
             isMoving(true)
             val startPos = tokenPositions.value[currentPlayer.value][tokenIndex]
-            val endPos = (startPos + currentMove.value.coerceAtMost(playerPaths[currentPlayer.value].size - 1))
+            val endPos = (startPos + currentMove.value).coerceAtMost(playerPaths[currentPlayer.value].size - 1)
             for (pos in (startPos + 1)..endPos) {
                 tokenPositions.value[currentPlayer.value][tokenIndex] = pos
                 when (pos) {
