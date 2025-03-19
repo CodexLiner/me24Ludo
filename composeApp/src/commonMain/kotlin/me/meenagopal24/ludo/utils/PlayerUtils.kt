@@ -25,14 +25,14 @@ import me.meenagopal24.ludo.paths.getPlayerTwoPath
 val homeOffsets = listOf(0 to 0, 9 to 0, 9 to 9, 0 to 9)
 
 val safeZones = listOf(
-    Pair(1, 6),   // Home Color 0
-    Pair(6, 2),   // Default Color
-    Pair(8, 1),   // Home Color 1
-    Pair(12, 6),  // Default Color
-    Pair(13, 8),  // Home Color 2
-    Pair(8, 12),  // Default Color
-    Pair(6, 13),  // Home Color 3
-    Pair(2, 8)    // Default Color
+    Pair(6, 1),   // Home Color 0
+    Pair(2, 6),   // Default Color
+    Pair(1, 8),   // Home Color 1
+    Pair(6, 12),  // Default Color
+    Pair(12, 8),  // Home Color 2
+    Pair(8, 13),  // Default Color
+    Pair(13, 6),  // Home Color 3
+    Pair(8, 2)    // Default Color
 )
 
 val safeZoneIndexed = listOf(
