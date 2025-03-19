@@ -144,14 +144,14 @@ fun DiceBox(
                 Image(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.background(
-                            Color.Black.copy(0.5f),
-                            RoundedCornerShape(10.dp)
-                        ).size(70.dp).border(
-                            width = if (isActive) 2.dp else 1.dp,
-                            color = if (isActive) animatedBorder else Color.Gray,
-                            shape = RoundedCornerShape(10.dp)
-                        ).then(
-                            if (isActive) Modifier.debounceClickable(
+                        Color.Black.copy(0.5f),
+                        RoundedCornerShape(10.dp)
+                    ).size(70.dp).border(
+                        width = if (isActive) 2.dp else 1.dp,
+                        color = if (isActive) animatedBorder else Color.Gray,
+                        shape = RoundedCornerShape(10.dp)
+                    ).then(
+                        if (isActive) Modifier.debounceClickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }) {
                             if (isRolling.not()) {
