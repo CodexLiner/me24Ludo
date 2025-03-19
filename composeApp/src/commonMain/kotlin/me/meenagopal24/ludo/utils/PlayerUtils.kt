@@ -172,18 +172,20 @@ fun calculateAlpha(
     tokenPositions: List<SnapshotStateList<Int>>,
     playerPaths: List<SnapshotStateList<Pair<Int, Int>>>
 ): Float {
-    val tokenPosition = tokenPositions[player][token]
+    return runCatching {
+        val tokenPosition = tokenPositions[player][token]
 
-    val isWinningZone = if (tokenPosition != -1) {
-        winningZones.contains(playerPaths[player][tokenPosition])
-    } else {
-        false
-    }
-    return when {
-        tokenPosition == -1 && currentPlayerMove == 6 -> colorAlphaState
-        tokenPosition != -1 && currentPlayerMove != -1 && !isWinningZone -> colorAlphaState
-        else -> 1f
-    }
+        val isWinningZone = if (tokenPosition != -1) {
+            winningZones.contains(playerPaths[player][tokenPosition])
+        } else {
+            false
+        }
+        return when {
+            tokenPosition == -1 && currentPlayerMove == 6 -> colorAlphaState
+            tokenPosition != -1 && currentPlayerMove != -1 && !isWinningZone -> colorAlphaState
+            else -> 1f
+        }
+    }.getOrDefault(1f)
 }
 
 
