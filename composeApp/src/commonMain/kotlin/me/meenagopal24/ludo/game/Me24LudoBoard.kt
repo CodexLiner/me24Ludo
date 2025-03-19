@@ -174,7 +174,7 @@ fun Me24LudoBoard(
                             tokenOffsets = tokenOffsets,
                             tokenColor = homeColors[player],
                             isActive = player == currentPlayer && currentMove > 0,
-                            tokenAlpha =  if (player == currentPlayer && tokenPositions[currentPlayer][token] != 56) alpha else 1f,
+                            tokenAlpha = if (player == currentPlayer && tokenPositions[currentPlayer][token] != 56 && tokenPositions[currentPlayer][token] + currentMove < viewModel.playerPaths[currentPlayer].size && !movementInProgress) alpha else 1f,
                             tokenPositions = tokenPositions,
                             boardCellsSize = boardCellsSize,
                             overlappingOffsets = overlappingOffsets,
