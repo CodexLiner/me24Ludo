@@ -3,6 +3,7 @@ package me.meenagopal24.ludo.utils
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,7 +11,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import io.ktor.util.date.getTimeMillis
 import kotlinx.coroutines.delay
 
@@ -94,4 +108,43 @@ inline fun Modifier.debounceClickable(
 inline fun repeatMirroredOrder(playersCount: Int, action: (Int) -> Unit) {
     val order = playersCount.playerOrders()
     order.forEach(action)
+}
+
+fun Modifier.progressBorder(
+    progress: Float,
+    density: Density,
+    strokeWidth: Dp = 4.dp,
+    strokeColor: Color = Color.Black,
+    progressColor: Color = Color.Blue
+): Modifier = this.drawBehind {
+    val shapePath = Path().apply {
+        addRoundRect(
+            RoundRect(
+                Rect(offset = Offset.Zero, size = Size(size.width, size.height)),
+                cornerRadius = CornerRadius(with(density) { 10.dp.toPx() }, with(density) { 10.dp.toPx() })
+            )
+        )
+    }
+
+    val pathMeasure = PathMeasure().apply { setPath(shapePath, forceClosed = false) }
+    val pathWithProgress = Path()
+
+    pathMeasure.getSegment(
+        startDistance = 0f,
+        stopDistance = pathMeasure.length * progress / 100f,
+        pathWithProgress,
+        startWithMoveTo = true
+    )
+
+    drawPath(
+        path = shapePath,
+        style = Stroke(with(density) { strokeWidth.toPx() }),
+        color = strokeColor
+    )
+
+    drawPath(
+        path = pathWithProgress,
+        style = Stroke(with(density) { strokeWidth.toPx() }),
+        color = progressColor
+    )
 }
