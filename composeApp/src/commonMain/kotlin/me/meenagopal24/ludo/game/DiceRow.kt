@@ -136,45 +136,49 @@ fun DiceBox(
         modifier = Modifier.height(70.dp).padding(horizontal = 16.dp)
     ) {
         if (player == 1 || player == 2) ProfileImage(url = Images[player])
+
         AnimatedVisibility(isActive) {
             Box(
                 contentAlignment = Alignment.Center, modifier = Modifier
             ) {
                 Image(
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .background(Color.Black.copy(0.5f), RoundedCornerShape(10.dp))
-                        .size(70.dp).border(
+                    modifier = Modifier.background(
+                            Color.Black.copy(0.5f),
+                            RoundedCornerShape(10.dp)
+                        ).size(70.dp).border(
                             width = if (isActive) 2.dp else 1.dp,
                             color = if (isActive) animatedBorder else Color.Gray,
                             shape = RoundedCornerShape(10.dp)
                         ).then(
                             if (isActive) Modifier.debounceClickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }) {
-                                if (isRolling.not()) {
-                                    scope.launch {
-                                        diceNumber = listOf(1, 2, 6, 3, 4, 5, 6).random()
-                                        isRolling = true
-                                        audioPlayer.stop()
-                                        audioPlayer.play(diceRollUri)
-                                        animation.animate(
-                                            composition,
-                                            initialProgress = 0f,
-                                            speed = 2f,
-                                            clipSpec = LottieClipSpec.Progress(0f, 0.85f)
-                                        )
-                                        onDiceRoll(diceNumber)
-                                    }
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) {
+                            if (isRolling.not()) {
+                                scope.launch {
+                                    diceNumber = listOf(1, 2, 6, 3, 4, 5, 6).random()
+                                    isRolling = true
+                                    audioPlayer.stop()
+                                    audioPlayer.play(diceRollUri)
+                                    animation.animate(
+                                        composition,
+                                        initialProgress = 0f,
+                                        speed = 2f,
+                                        clipSpec = LottieClipSpec.Progress(0f, 0.85f)
+                                    )
+                                    onDiceRoll(diceNumber)
                                 }
+                            }
 
-                            } else Modifier.alpha(0.5f)), painter = rememberLottiePainter(
+                        } else Modifier.alpha(0.5f)),
+                    painter = rememberLottiePainter(
                         forceOffscreenRendering = true,
                         clipTextToBoundingBoxes = false,
                         clipToCompositionBounds = false,
                         composition = composition,
                         progress = { animation.progress },
-                    ), contentDescription = "Lottie dice animation"
+                    ),
+                    contentDescription = "Lottie dice animation"
                 )
             }
         }
