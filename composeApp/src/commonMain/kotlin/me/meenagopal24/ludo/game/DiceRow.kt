@@ -132,7 +132,7 @@ fun DiceBox(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.height(70.dp).padding(horizontal = 16.dp)
     ) {
         if (player == 1 || player == 2) ProfileImage(url = Images[player])
