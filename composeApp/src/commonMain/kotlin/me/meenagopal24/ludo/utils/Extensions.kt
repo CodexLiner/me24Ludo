@@ -3,7 +3,6 @@ package me.meenagopal24.ludo.utils
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -21,11 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.ktor.util.date.getTimeMillis
 import kotlinx.coroutines.delay
 
 fun Boolean?.ifNotTrue(default: () -> Unit): Boolean? {
@@ -115,8 +112,8 @@ fun Modifier.progressBorder(
     density: Density,
     strokeWidth: Dp = 4.dp,
     strokeColor: Color = Color.Black,
-    progressColor: Color = Color.Blue
-): Modifier = this.drawBehind {
+    progressColor: Color = Color.Green
+): Modifier = this.drawWithContent {
     val shapePath = Path().apply {
         addRoundRect(
             RoundRect(
@@ -147,4 +144,5 @@ fun Modifier.progressBorder(
         style = Stroke(with(density) { strokeWidth.toPx() }),
         color = progressColor
     )
+    drawContent()
 }
