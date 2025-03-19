@@ -32,6 +32,7 @@ class Me24LudoBoardViewModel : ViewModel() {
     val currentPlayer = MutableStateFlow(0)
     val currentMove = MutableStateFlow(-1)
     val movementInProgress = MutableStateFlow(false)
+    private val keepAlive = MutableStateFlow(false)
     val onDiceRolled = MutableStateFlow(false)
     var playersCount = MutableStateFlow(4)
     private val tempSafeZones = MutableStateFlow<MutableSet<Pair<Int, Int>>>(mutableSetOf())
@@ -57,19 +58,28 @@ class Me24LudoBoardViewModel : ViewModel() {
         onDiceRolled.value = b
     }
 
-    private fun isMoving(b: Boolean) {
+    private fun isMoving(b: Boolean , keepAlive : Boolean = false) {
         movementInProgress.value = b
+        this.keepAlive.value = keepAlive
     }
     fun setPlayerCount(playersCount: Int) {
         this.playersCount.value = playersCount
         currentPlayer.value = playersCount.playerOrders().first()
     }
 
-    fun autoMovePlayer(tokenIndex : Int) {
+    fun autoMovePlayer(tokenIndex: Int) {
         viewModelScope.launch {
-            isMoving(true)
+            isMoving(b = true , keepAlive = false)
             val startPos = tokenPositions.value[currentPlayer.value][tokenIndex]
-            val endPos = (startPos + currentMove.value).coerceAtMost(playerPaths[currentPlayer.value].size - 1)
+            val calculatedEndPos = startPos + currentMove.value
+            val pathSize = playerPaths[currentPlayer.value].size
+            if (calculatedEndPos >= pathSize) {
+                isMoving(false)
+                return@launch
+            }
+
+            val endPos = calculatedEndPos.coerceAtMost(pathSize - 1)
+
             for (pos in (startPos + 1)..endPos) {
                 tokenPositions.value[currentPlayer.value][tokenIndex] = pos
                 when (pos) {
@@ -82,7 +92,7 @@ class Me24LudoBoardViewModel : ViewModel() {
 
             isMoving(false)
             delay(50) // little delay for checking collisions
-            setCurrentPlayer(currentPlayer.value.nextPlayer(playersCount.value, currentMove.value))
+            if (keepAlive.value.not()) setCurrentPlayer(currentPlayer.value.nextPlayer(playersCount.value, currentMove.value))
             resetCurrentMove()
         }
     }
@@ -133,7 +143,7 @@ class Me24LudoBoardViewModel : ViewModel() {
                     val colIndex = if (player1 == currentPlayer.value) token2 else token1
 
                     val currentValue = tokenPositions.value[rowIndex][colIndex]
-                    isMoving(true)
+                    isMoving(b = true, keepAlive = true)
                     viewModelScope.launch {
                         audioPlayer.stop()
                         audioPlayer.play(deathUri)
