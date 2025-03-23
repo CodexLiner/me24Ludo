@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 import me.meenagopal24.ludo.media.createAudioPlayer
 import me.meenagopal24.ludo.utils.debounceClickable
 import me.meenagopal24.ludo.utils.getAnimatedBorderColor
+import me.meenagopal24.ludo.utils.playerOrders
 import multiplatform_app.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
@@ -57,7 +58,10 @@ fun DiceRow(
             .padding(horizontal = padding.dp, vertical = (padding / 2).dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        val playerOrders = viewModel.playersCount.value.playerOrders()
+
         DiceBox(
+            modifier = Modifier.alpha(if(playerOrders.contains(startIndex)) 1f else 0f),
             homeColors = homeColors,
             player = startIndex,
             onDiceRolled = onDiceRolled,
@@ -67,6 +71,7 @@ fun DiceRow(
             viewModel.setOnDiceRolled(true)
         }
         DiceBox(
+            modifier = Modifier.alpha(if(playerOrders.contains(endIndex)) 1f else 0f),
             player = endIndex,
             homeColors = homeColors,
             onDiceRolled = onDiceRolled,
@@ -82,6 +87,7 @@ fun DiceRow(
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun DiceBox(
+    modifier: Modifier=  Modifier.height(70.dp).padding(horizontal = 16.dp),
     player: Int,
     homeColors: List<Color>,
     isActive: Boolean = true,
@@ -133,7 +139,7 @@ fun DiceBox(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.height(70.dp).padding(horizontal = 16.dp)
+        modifier = modifier
     ) {
         if (player == 1 || player == 2) ProfileImage(url = Images[player])
 
