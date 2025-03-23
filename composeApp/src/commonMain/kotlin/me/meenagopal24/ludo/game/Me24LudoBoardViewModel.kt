@@ -29,7 +29,7 @@ class Me24LudoBoardViewModel : ViewModel() {
     private var winningZoneUri = Res.getUri("files/panta.mp3")
     private var deathUri = Res.getUri("files/death.mp3")
 
-    val currentPlayer = MutableStateFlow(0)
+    val currentPlayer = MutableStateFlow(3)
     val currentMove = MutableStateFlow(-1)
     val movementInProgress = MutableStateFlow(false)
     private val keepAlive = MutableStateFlow(false)
@@ -113,14 +113,13 @@ class Me24LudoBoardViewModel : ViewModel() {
             onMove = { newPosition ->
                 tokenPositions.value[currentPlayer].indexOf(newPosition).takeIf { it >= 0 }
                     ?.let { tokenIndex ->
-                        autoMovePlayer(tokenIndex)
+                        if (currentMove.value != -1) autoMovePlayer(tokenIndex)
                     }
             })
 
     }
 
     fun handleCollisions(collisions: MutableMap<Pair<Int, Int>, MutableList<Triple<Int, Int, Int>>>) {
-        Logger.d("CollisionAre : $collisions and safe ${tempSafeZones.value}")
 
         /**
          * clear temp safe zones
