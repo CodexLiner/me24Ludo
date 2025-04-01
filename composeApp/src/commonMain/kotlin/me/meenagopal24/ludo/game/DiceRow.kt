@@ -54,14 +54,14 @@ fun DiceRow(
 ) {
     val onDiceRolled by viewModel.onDiceRolled.collectAsState()
     Row(
-        modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = padding.dp, vertical = (padding / 2).dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = (padding+5).dp, vertical = (padding / 2).dp).fillMaxWidth().height(100.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        val playerOrders = viewModel.playersCount.value.playerOrders()
+        val playerOrders by viewModel.playersCount.collectAsState()
 
         DiceBox(
-            modifier = Modifier.alpha(if(playerOrders.contains(startIndex)) 1f else 0f),
+            modifier = Modifier.alpha(if(playerOrders.playerOrders().contains(startIndex)) 1f else 0f),
             homeColors = homeColors,
             player = startIndex,
             onDiceRolled = onDiceRolled,
@@ -71,7 +71,7 @@ fun DiceRow(
             viewModel.setOnDiceRolled(true)
         }
         DiceBox(
-            modifier = Modifier.alpha(if(playerOrders.contains(endIndex)) 1f else 0f),
+            modifier = Modifier.alpha(if(playerOrders.playerOrders().contains(endIndex)) 1f else 0f),
             player = endIndex,
             homeColors = homeColors,
             onDiceRolled = onDiceRolled,
@@ -141,8 +141,7 @@ fun DiceBox(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
     ) {
-        if (player == 1 || player == 2) ProfileImage(url = Images[player])
-
+        if (player in listOf(1, 2)) ProfileImage(url = Images.getOrNull(player) ?: "")
         AnimatedVisibility(isActive) {
             Box(
                 contentAlignment = Alignment.Center, modifier = Modifier
@@ -188,8 +187,7 @@ fun DiceBox(
                 )
             }
         }
-
-        if (player == 0 || player == 3) ProfileImage(url = Images[player])
+        if (player in listOf(0, 3) && player in Images.indices) ProfileImage(url = Images[player])
     }
 }
 
