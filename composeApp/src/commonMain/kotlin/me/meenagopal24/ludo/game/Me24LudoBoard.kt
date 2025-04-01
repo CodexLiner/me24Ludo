@@ -63,7 +63,9 @@ fun Me24LudoBoard(
     players: Int = 4,
 ) {
 
-    val viewModel : Me24LudoBoardViewModel = viewModel()
+    val viewModel : Me24LudoBoardViewModel = viewModel {
+        Me24LudoBoardViewModel()
+    }
     val currentPlayer by viewModel.currentPlayer.collectAsState()
     val currentMove by viewModel.currentMove.collectAsState()
     val movementInProgress by viewModel.movementInProgress.collectAsState()
